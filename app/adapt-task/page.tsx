@@ -89,13 +89,13 @@ export default function AdaptTaskPage() {
               <h2 className="text-xl font-black text-amiko-ink">{subject.label}</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
-                  href="/adapt-task/chat"
+                  href="/child-mode/task-1"
                   className="focus-ring inline-flex items-center rounded-full bg-amiko-navy px-4 py-2 text-sm font-black text-white shadow-card transition hover:bg-blue-900"
                 >
                   Ver temas
                 </Link>
                 <Link
-                  href="/child-mode/task-1"
+                  href="/adapt-task/chat"
                   className="focus-ring inline-flex items-center rounded-full border border-amiko-navy px-4 py-2 text-sm font-black text-amiko-navy transition hover:bg-amiko-sky"
                 >
                   Practicar

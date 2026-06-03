@@ -112,9 +112,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Icon name="clock" className="h-5 w-5" />
             </Link>
             <Link
-              href="/dashboard"
+              href="/mi-dia"
               className="focus-ring flex h-9 w-9 items-center justify-center rounded-full hover:bg-amiko-sky"
-              aria-label="Notificaciones"
+              aria-label="Mi Día"
             >
               <Icon name="bell" className="h-5 w-5" />
             </Link>
