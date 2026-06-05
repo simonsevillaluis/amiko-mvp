@@ -46,6 +46,7 @@ export default function ConversationPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userMessageCount, setUserMessageCount] = useState(0);
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
   const [mode, setMode] = useState<ModeKey>("tareas");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -107,26 +108,57 @@ export default function ConversationPage() {
       const data = await res.json();
 
       if (data.error) {
-        // Mensaje amigable al estilo Amiko para cuotas, caídas o errores de API
-        const amikoFriendlyError = "¡Uy! En este momento mi cabecita está procesando muchas cosas a la vez y me cansé un poquito. 🧠✨ ¿Podrías intentar enviarme tu mensaje de nuevo en unos segundos? ¡Aquí te espero con gusto!";
-        
+        const errorText = String(data.error);
+        // Detectar si es un error de cuota o de saturación/indisponibilidad de Google
+        const isSaturated = errorText.includes("503") || 
+                            errorText.includes("429") || 
+                            errorText.toLowerCase().includes("quota") || 
+                            errorText.toLowerCase().includes("demand") || 
+                            errorText.toLowerCase().includes("limit") ||
+                            errorText.toLowerCase().includes("unavailable");
+
+        const nextErrorCount = consecutiveErrors + 1;
+        setConsecutiveErrors(nextErrorCount);
+
+        let replyText = "";
+        if (isSaturated) {
+          if (nextErrorCount === 1) {
+            replyText = "¡Uy! En este momento mi cabecita está procesando muchas cosas a la vez y me cansé un poquito. 🧠✨ ¿Podrías intentar enviarme tu mensaje de nuevo en unos segundos? ¡Aquí te espero con gusto!";
+          } else {
+            replyText = "Aún sigo procesando información de otros amiguitos. Dame un momentito más e intenta de nuevo, por favor. 🧠✨";
+          }
+        } else {
+          // Si el error es otro, mandamos el error técnico exacto en texto
+          replyText = `[Error técnico de Amiko]: ${data.error}`;
+        }
+
         setMessages((prev) => [
           ...prev,
-          { id: Date.now().toString(), role: "model", text: amikoFriendlyError },
+          { id: Date.now().toString(), role: "model", text: replyText },
         ]);
         return;
       }
 
       const replyText = data.text ?? "No pude procesar tu mensaje.";
 
+      // Reseteamos el contador si hay éxito
+      setConsecutiveErrors(0);
+
       setMessages((prev) => [
         ...prev,
         { id: Date.now().toString(), role: "model", text: replyText },
       ]);
-    } catch {
+    } catch (e) {
+      const nextErrorCount = consecutiveErrors + 1;
+      setConsecutiveErrors(nextErrorCount);
+
+      const replyText = nextErrorCount === 1 
+        ? "¡Uy! Parece que hubo un pequeño problema de conexión. ¿Volvemos a intentarlo en unos segundos?" 
+        : "Sigo teniendo problemas de conexión. Dame un momentito más e intenta de nuevo, por favor. 🧠✨";
+
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: "model", text: "¡Uy! Parece que hubo un pequeño problema de conexión. ¿Volvemos a intentarlo en unos segundos?" },
+        { id: Date.now().toString(), role: "model", text: replyText },
       ]);
     } finally {
       setLoading(false);
