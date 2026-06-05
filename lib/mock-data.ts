@@ -35,7 +35,7 @@ export type ProgressEvent = {
 
 export const student: StudentProfile = {
   id: "student-1",
-  name: "Mateo",
+  name: "Ángel",
   age: 9,
   grade: "4to grado",
   supportLevel: "medio",

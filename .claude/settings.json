@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo *)",
+      "Bash(uv --version)",
+      "Bash(pipx --version)",
+      "PowerShell(python --version)",
+      "PowerShell(uv --version 2>$null)",
+      "PowerShell(pipx --version 2>$null)",
+      "PowerShell(pip install graphifyy 2>&1)",
+      "PowerShell(pip install graphifyy --only-binary :all: 2>&1)",
+      "PowerShell(py --list 2>&1)",
+      "Read(//c/Users/Luis Simon/Downloads/**)",
+      "PowerShell(py -3.12 -m pip install graphifyy 2>&1)",
+      "Read(//c/Users/Luis Simon/.claude/skills/graphify/**)",
+      "Read(//c/Users/Luis Simon/.claude/**)",
+      "Bash(mkdir -p \"/c/Users/Luis Simon/.claude/commands\")",
+      "Bash(cp \"/c/Users/Luis Simon/.claude/skills/graphify/SKILL.md\" \"/c/Users/Luis Simon/.claude/commands/graphify.md\")"
+    ]
+  }
+}

@@ -1,97 +1,173 @@
-import { AppShell } from "@/components/app-shell";
+import Image from "next/image";
+import Link from "next/link";
+import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { DetailShell } from "@/components/detail-shell";
+import { student } from "@/lib/mock-data";
 
-function PlayIcon() {
-  return (
-    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M6 4l15 8-15 8V4Z" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v6l4 2" />
-    </svg>
-  );
-}
-
-const sections = [
+const wellnessSections: Array<{
+  title: string;
+  items: Array<{
+    title: string;
+    description: string;
+    duration: string;
+    icon: AmikoIconName;
+    tone: string;
+  }>;
+}> = [
   {
-    title: "Respiración Guiada",
+    title: "Respiración guiada",
     items: [
       {
-        emoji: "🌬️",
-        name: "Respiración 4-7-8",
-        description: "Inhala 4 segundos, sostén 7, exhala 8",
-        minutes: 5,
+        title: "Respiración 4-7-8",
+        description: "Inhala 4, sostén 7 y suelta 8. Útil antes de volver a explicar.",
+        duration: "5 min",
+        icon: "calm",
+        tone: "bg-amiko-sky text-amiko-blue",
       },
       {
-        emoji: "🌀",
-        name: "Respiración Cuadrada",
-        description: "Inahala, sosten, exhala (4-4-4-4)",
-        minutes: 10,
+        title: "Respiración cuadrada",
+        description: "Inhala, sostén, exhala y pausa en cuatro tiempos iguales.",
+        duration: "4 min",
+        icon: "clock",
+        tone: "bg-amiko-mint text-green-800",
       },
     ],
   },
   {
-    title: "Calmar Frustración",
+    title: "Calmar frustración",
     items: [
       {
-        emoji: "💪",
-        name: "Relajación Muscular",
-        description: "Libera la tensión de tu cuerpo",
-        minutes: 10,
+        title: "Soltar tensión",
+        description: "Relaja hombros, manos y mandíbula antes de retomar la tarea.",
+        duration: "3 min",
+        icon: "heart",
+        tone: "bg-amiko-cream text-amiko-navy",
+      },
+      {
+        title: "Frase de regreso",
+        description: `Prepara una frase corta para acompañar a ${student.name} sin presionar.`,
+        duration: "2 min",
+        icon: "sparkles",
+        tone: "bg-blue-50 text-amiko-blue",
       },
     ],
   },
 ];
 
+const quickNeeds = [
+  "Necesito calmarme",
+  "Quiero retomar sin presión",
+  "No sé qué decir",
+  "La tarea se puso difícil",
+];
+
 export default function BienestarPage() {
   return (
-    <AppShell>
-      <div className="flex items-center gap-2 mb-5">
-        <span className="text-xl">😊</span>
-        <h1 className="text-2xl font-black text-amiko-ink">Bienestar Emocional</h1>
-      </div>
+    <DetailShell title="Bienestar" fallbackHref="/acompanamiento">
+      <section className="mb-6">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-green">
+          Herramienta de bienestar
+        </p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-amiko-ink">
+          Pausas para acompañar mejor
+        </h1>
+        <p className="mt-3 text-base font-bold leading-7 text-amiko-muted">
+          Técnicas breves para recuperar calma, ordenar la situación y volver con un paso más pequeño.
+        </p>
+      </section>
 
-      <div className="space-y-6">
-        {sections.map((section) => (
-          <section key={section.title}>
-            <h2 className="mb-3 font-black text-amiko-blue">{section.title}</h2>
-            <div className="space-y-3">
-              {section.items.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-card"
-                >
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-amiko-mint text-4xl">
-                    {item.emoji}
-                  </div>
+      <section className="mb-6 overflow-hidden rounded-[28px] border border-blue-100 bg-gradient-to-br from-amiko-sky via-white to-amiko-mint p-5 shadow-card">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/amiko-character/amiko-icon.svg"
+            alt=""
+            width={74}
+            height={74}
+            className="shrink-0 object-contain"
+            priority
+          />
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-green">
+              Un minuto también cuenta
+            </p>
+            <h2 className="mt-1 text-xl font-black leading-tight text-amiko-navy">
+              Pausar no es rendirse
+            </h2>
+            <p className="mt-2 text-sm font-bold leading-6 text-amiko-muted">
+              Si una tarea se bloquea, primero bajamos la carga. Después elegimos un siguiente paso.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-xl font-black text-amiko-ink">¿Qué necesitas ahora?</h2>
+        <div className="flex flex-wrap gap-2">
+          {quickNeeds.map((need, index) => (
+            <Link
+              key={need}
+              href={`/adapt-task/chat/conversation?mode=calma&need=${encodeURIComponent(need)}`}
+              className={`focus-ring rounded-full border px-4 py-2 text-sm font-black transition ${
+                index === 0
+                  ? "border-amiko-green bg-amiko-green text-white shadow-sm"
+                  : "border-slate-200 bg-white text-amiko-muted hover:border-amiko-green/40 hover:bg-amiko-mint"
+              }`}
+            >
+              {need}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {wellnessSections.map((section) => (
+        <section key={section.title} className="mb-6">
+          <h2 className="mb-3 text-xl font-black text-amiko-ink">{section.title}</h2>
+          <div className="space-y-3">
+            {section.items.map((exercise) => (
+              <article
+                key={exercise.title}
+                className="rounded-[22px] border border-blue-100 bg-white p-4 shadow-card"
+              >
+                <div className="flex items-start gap-4">
+                  <span
+                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${exercise.tone}`}
+                  >
+                    <AmikoIcon name={exercise.icon} className="h-7 w-7" />
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-black text-amiko-ink">{item.name}</h3>
-                    <p className="mt-0.5 text-sm leading-5 text-amiko-muted">{item.description}</p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-xs text-amiko-muted">
-                        <ClockIcon />
-                        {item.minutes} min
+                    <h3 className="text-lg font-black leading-tight text-amiko-ink">
+                      {exercise.title}
+                    </h3>
+                    <p className="mt-1 text-sm font-bold leading-5 text-amiko-muted">
+                      {exercise.description}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-blue-100 pt-3">
+                      <span className="flex items-center gap-1 text-xs font-black text-amiko-muted">
+                        <AmikoIcon name="clock" className="h-4 w-4 text-amiko-green" />
+                        {exercise.duration}
                       </span>
                       <button
                         type="button"
-                        className="flex items-center gap-1.5 rounded-full bg-amiko-mint px-4 py-1.5 text-sm font-black text-green-800 shadow-sm transition hover:bg-green-100"
+                        className="focus-ring inline-flex items-center gap-2 rounded-full bg-amiko-green px-4 py-2 text-xs font-black text-white shadow-sm transition hover:brightness-95"
                       >
-                        <PlayIcon />
+                        <AmikoIcon name="play" className="h-4 w-4" />
                         Comenzar
                       </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </AppShell>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section className="rounded-[24px] bg-amiko-sky px-4 py-4">
+        <p className="text-sm font-bold leading-6 text-amiko-navy">
+          Estas pausas son apoyo cotidiano para el cuidador. Amiko no reemplaza orientación profesional
+          cuando una situación requiere acompañamiento especializado.
+        </p>
+      </section>
+    </DetailShell>
   );
 }

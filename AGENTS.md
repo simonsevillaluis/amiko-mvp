@@ -6,14 +6,42 @@ AMIKO es un asistente pedagógico inclusivo con IA para niños, niñas y adolesc
 
 El producto debe facilitar que el estudiante comprenda mejor qué debe hacer, avance con más autonomía y reciba apoyo adulto cuando lo necesite. AMIKO es una herramienta de apoyo pedagógico: no diagnostica, no sustituye a profesionales de salud, terapeutas ni docentes, y debe comunicar ese límite con claridad.
 
+## Dirección Actual Del Producto
+
+La implementación debe avanzar por etapas:
+
+1. Construir y validar primero toda la experiencia para padres, madres y cuidadores.
+2. Construir después las pantallas y la experiencia directa para el estudiante.
+
+Durante la primera etapa, la prioridad es que el adulto pueda registrarse, crear o consultar el perfil del estudiante, organizar su día, ingresar tareas, recibir adaptaciones claras y revisar información útil para acompañarlo.
+
+El modo niño y las demás pantallas usadas directamente por el estudiante siguen siendo parte de la visión del producto, pero no deben bloquear ni desviar el desarrollo de la experiencia para padres.
+
+AMIKO no manejará un pensum educativo. No construir funciones para administrar currículos, planes académicos oficiales, mallas curriculares, contenidos por grado ni planificación institucional.
+
+## Imagen Y Voz De Marca
+
+Conservar la imagen y voz de marca ya desarrolladas en el proyecto. Antes de crear o rediseñar una pantalla, revisar los componentes, assets y patrones visuales existentes.
+
+La marca AMIKO debe sentirse:
+
+- Cálida, cercana y tranquilizadora.
+- Inclusiva y respetuosa.
+- Clara, positiva y práctica.
+- Infantil cuando acompaña al estudiante, pero nunca condescendiente.
+- Confiable y ordenada cuando se dirige al adulto.
+- Alejada del lenguaje clínico complejo, alarmista o frío.
+
+Mantener la identidad visual existente: personaje de AMIKO, colores verdes y azules, tarjetas suaves, jerarquías claras, iconografía amigable y espacios visuales tranquilos. Evitar rediseñar la marca desde cero o introducir estilos que contradigan los assets y pantallas actuales.
+
 ## Objetivo del MVP
 
 Construir una demo web funcional que permita validar el corazón del producto:
 
-- Si padres, madres y docentes entienden el valor de AMIKO.
+- Si padres, madres y cuidadores entienden el valor de AMIKO.
 - Si la adaptación de tareas escolares ayuda al estudiante a comprender mejor la actividad.
-- Si el modo niño facilita avanzar paso a paso.
-- Si el registro básico de progreso entrega información útil sin crear complejidad innecesaria.
+- Si la experiencia para padres facilita organizar, adaptar y acompañar las tareas del estudiante.
+- Si la información básica de progreso entrega valor sin crear complejidad innecesaria.
 
 El MVP debe enfocarse en validar la experiencia principal, no en construir una plataforma completa.
 
@@ -24,9 +52,14 @@ El MVP debe incluir:
 - Adaptar tareas escolares.
 - Mostrar instrucciones simples paso a paso.
 - Sugerir pictogramas o apoyos visuales.
-- Activar un modo niño con una instrucción por pantalla.
 - Registrar progreso básico.
-- Mostrar una vista básica para padres, madres y docentes.
+- Mostrar una experiencia completa y coherente para padres, madres y cuidadores.
+
+Después de validar la experiencia para padres, el producto podrá incluir:
+
+- Modo niño con una instrucción por pantalla.
+- Pantallas usadas directamente por el estudiante.
+- Interacciones simplificadas para completar pasos y pedir ayuda.
 
 El MVP no debe incluir todavía:
 
@@ -37,12 +70,14 @@ El MVP no debe incluir todavía:
 - Panel institucional avanzado.
 - Sistema complejo de reportes.
 - Comunidad o foro.
+- Gestión de pensum educativo.
+- Planificación curricular o institucional.
 
-## Usuarios Principales
+## Usuarios Y Prioridad
 
-- Padre, madre o cuidador: crea perfiles, ingresa tareas, revisa adaptaciones y progreso.
-- Docente: revisa tareas originales, adaptaciones generadas y observaciones del estudiante.
-- Estudiante con TEA: usa el modo niño para avanzar una instrucción a la vez.
+- Prioridad actual, padre, madre o cuidador: crea perfiles, organiza el día, ingresa tareas, revisa adaptaciones y consulta progreso.
+- Segunda etapa, estudiante con TEA: usa experiencias simples para avanzar una instrucción a la vez.
+- Etapa posterior, docente: revisa tareas originales, adaptaciones generadas y observaciones relevantes.
 
 ## Stack Recomendado
 
@@ -95,6 +130,8 @@ El sistema debe enviar la tarea a un servicio de IA y recibir una adaptación es
 - Nivel de dificultad estimado.
 
 ### Modo Niño
+
+Esta funcionalidad corresponde a una segunda etapa, después de validar y completar la experiencia para padres.
 
 El modo niño debe ser extremadamente simple:
 
@@ -264,11 +301,15 @@ Las pantallas para adultos pueden tener más información, pero deben seguir sie
 - `/`: página inicial o redirección según sesión.
 - `/login`: inicio de sesión y registro.
 - `/dashboard`: resumen principal para adultos.
+- `/mi-dia`: organización y resumen diario para padres o cuidadores.
 - `/students`: gestión de perfiles de estudiantes.
 - `/adapt-task`: formulario para ingresar y adaptar una tarea.
 - `/tasks/[id]`: detalle de tarea y adaptación.
-- `/child-mode/[id]`: experiencia paso a paso para el estudiante.
 - `/progress`: resumen básico de progreso.
+
+Rutas para una segunda etapa:
+
+- `/child-mode/[id]`: experiencia paso a paso para el estudiante.
 - `/teacher`: vista docente básica.
 
 ## Componentes Sugeridos
@@ -292,10 +333,12 @@ El MVP se considera listo cuando:
 - Un usuario puede ingresar una tarea escolar.
 - La IA devuelve una adaptación estructurada.
 - El resultado se muestra de forma clara.
-- El estudiante puede usar el modo niño.
 - El sistema registra eventos básicos de progreso.
-- El padre, madre o docente puede ver un resumen simple.
+- El padre, madre o cuidador puede entender y navegar el flujo completo.
+- La experiencia conserva la imagen y voz de marca de AMIKO.
 - La app puede desplegarse en Vercel.
+
+Después de completar esta primera etapa, se definirán criterios de aceptación específicos para las pantallas del estudiante y el modo niño.
 
 ## Estilo De Código
 
@@ -328,8 +371,9 @@ El MVP se considera listo cuando:
 
 - Crear estructura Next.js.
 - Crear diseño base.
-- Crear pantallas mockeadas.
+- Crear y pulir primero las pantallas para padres, madres y cuidadores.
 - Definir componentes principales.
+- Conservar la imagen, assets y voz de marca existentes.
 
 ### Segundo
 
@@ -347,19 +391,26 @@ El MVP se considera listo cuando:
 
 ### Cuarto
 
-- Crear modo niño.
 - Registrar progreso.
 - Mostrar resumen básico de eventos.
+- Validar el flujo completo para padres y cuidadores.
 
 ### Quinto
 
 - Pulir UI.
 - Revisar accesibilidad básica.
-- Preparar demo para pruebas con padres, madres y docentes.
+- Preparar demo para pruebas con padres, madres y cuidadores.
 - Verificar despliegue en Vercel.
+
+### Después Del MVP Para Padres
+
+- Diseñar y construir las pantallas usadas directamente por el estudiante.
+- Crear modo niño.
+- Validar interacciones simples, visuales y paso a paso.
+- Evaluar posteriormente las necesidades de docentes.
 
 ## Prioridad Del Proyecto
 
-La prioridad es validar una experiencia clara, humana y útil: una persona adulta ingresa una tarea escolar, AMIKO la transforma en pasos simples con apoyos visuales, y el estudiante puede avanzar con una instrucción por pantalla.
+La prioridad actual es validar una experiencia clara, humana y útil para padres, madres y cuidadores: una persona adulta organiza la información del estudiante, ingresa una tarea escolar, AMIKO la transforma en pasos simples con apoyos visuales y ofrece una guía práctica para acompañarlo.
 
-Cada decisión técnica o de diseño debe proteger ese flujo principal.
+Cada decisión técnica o de diseño debe proteger primero ese flujo para adultos, mantener la imagen y voz de marca existente y evitar introducir gestión de pensum educativo.

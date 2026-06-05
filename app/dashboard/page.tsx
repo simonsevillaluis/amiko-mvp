@@ -1,108 +1,139 @@
+import Image from "next/image";
 import Link from "next/link";
+import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
-import { ProgressSummary } from "@/components/progress-summary";
-import { StudentProfileCard } from "@/components/student-profile-card";
-import { Card, StatusPill } from "@/components/ui";
-import { recentTasks } from "@/lib/mock-data";
+import { student } from "@/lib/mock-data";
 
-function MascotScene() {
-  return (
-    <div className="relative h-32 overflow-hidden rounded-t-[22px] bg-gradient-to-br from-[#BCE4FF] via-[#DFF4FF] to-[#C7F2BC]">
-      <div className="absolute left-5 top-5 h-9 w-16 rotate-[-18deg] rounded-full bg-amiko-coral/80" />
-      <div className="absolute right-7 top-5 h-7 w-12 rotate-12 rounded-full bg-amiko-green/70" />
-      <div className="absolute bottom-6 left-8 h-10 w-10 rounded-xl bg-white/80" />
-      <div className="absolute bottom-5 right-9 h-12 w-12 rounded-full border-4 border-white/80 bg-amiko-blue/80" />
-      <div className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-white text-2xl font-black text-amiko-green shadow-card">
-        ami
-      </div>
-      <div className="absolute inset-x-0 bottom-0 bg-amiko-navy/90 px-4 py-2 text-lg font-black text-white">
-        Continuar Tareas
-      </div>
-    </div>
-  );
-}
+const weekSummary = [
+  { value: "3", label: "Tareas acompañadas", tone: "text-amiko-green" },
+  { value: "8", label: "Pasos completados", tone: "text-amiko-blue" },
+  { value: "2", label: "Veces pidió ayuda", tone: "text-amiko-navy" },
+  { value: "1", label: "Pausa que ayudó", tone: "text-amiko-coral" },
+];
+
+const quickActions: Array<{
+  title: string;
+  description: string;
+  href: string;
+  icon: AmikoIconName;
+  tone: string;
+}> = [
+  {
+    title: "Registrar cómo fue la tarea",
+    description: "Guarda lo que funcionó y lo que costó hoy.",
+    href: "/mi-dia",
+    icon: "journal",
+    tone: "bg-amiko-sky text-amiko-blue",
+  },
+  {
+    title: "Bienestar",
+    description: "Respira, baja la carga y vuelve con calma.",
+    href: "/bienestar",
+    icon: "calm",
+    tone: "bg-amiko-cream text-amiko-coral",
+  },
+  {
+    title: "Revisar la red de apoyo",
+    description: `Mira quiénes pueden acompañar a ${student.name}.`,
+    href: "/comunidad",
+    icon: "users",
+    tone: "bg-amiko-mint text-green-800",
+  },
+];
 
 export default function DashboardPage() {
   return (
     <AppShell>
-      <section className="mb-5">
-        <p className="text-xl font-black text-amiko-green">Aula Virtual</p>
-        <Link href="/tasks/task-1" className="focus-ring mt-3 block overflow-hidden rounded-2xl bg-white shadow-card">
-          <MascotScene />
-          <div className="bg-gradient-to-r from-[#9BD875] to-[#DDF7B9] p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/80 text-white">
-                <span className="h-0 w-0 border-y-[9px] border-l-[14px] border-y-transparent border-l-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-black leading-6 text-amiko-ink">Matemáticas</h1>
-                <p className="text-sm font-bold text-green-900">Resolver operaciones cuadráticas</p>
-              </div>
-              <p className="text-2xl font-black text-white">60%</p>
-            </div>
-            <div className="mt-4 h-4 rounded-full bg-white/80 p-1">
-              <div className="h-full w-3/5 rounded-full bg-amiko-blue" />
-            </div>
-          </div>
-        </Link>
+      <section className="mb-6">
+        <p className="text-3xl font-black leading-tight text-amiko-ink">Hola, Luis.</p>
+        <p className="mt-2 text-lg font-bold leading-7 text-amiko-muted">
+          ¿Cómo ayudamos hoy a <span className="text-amiko-green">{student.name}</span>?
+        </p>
       </section>
-
-      <Card className="mb-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-amiko-ink">Progreso de Hoy</h2>
-          <span className="text-2xl font-black text-amiko-blue">3/6</span>
-        </div>
-        <div className="mt-4 h-4 rounded-full bg-slate-100">
-          <div className="h-full w-1/2 rounded-full bg-amiko-green" />
-        </div>
-      </Card>
 
       <Link
         href="/adapt-task"
-        className="focus-ring mb-5 flex items-center gap-4 rounded-2xl border-2 border-amiko-green bg-amiko-sky/70 p-4 shadow-card"
+        className="focus-ring group relative mb-6 block overflow-hidden rounded-[28px] bg-gradient-to-br from-amiko-blue via-amiko-navy to-[#082A61] p-6 text-white shadow-soft"
       >
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-black text-amiko-green shadow-card">
-          AI
+        <div className="relative z-10 max-w-[72%]">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-100">
+            Vamos paso a paso
+          </p>
+          <h1 className="mt-2 text-2xl font-black leading-tight">Adaptar una tarea</h1>
+          <p className="mt-3 text-sm font-bold leading-6 text-blue-100">
+            Escribe la consigna y Amiko la convierte en instrucciones claras para acompañarla.
+          </p>
+          <span className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-amiko-navy shadow-card transition group-hover:-translate-y-0.5">
+            <AmikoIcon name="sparkles" className="h-5 w-5" />
+            Adaptar ahora
+          </span>
         </div>
-        <div>
-          <h2 className="text-lg font-black leading-6 text-amiko-ink">Hablar con el Asistente IA</h2>
-          <p className="text-sm font-bold text-amiko-muted">Pregúntame sobre cualquier tarea.</p>
-        </div>
+        <div className="absolute -bottom-2 -right-1 h-40 w-40 rounded-full bg-amiko-green/20" />
+        <Image
+          src="/amiko-character/amiko-character-photo.svg"
+          alt=""
+          width={122}
+          height={122}
+          className="absolute bottom-1 right-0 object-contain drop-shadow-md"
+        />
       </Link>
 
-      <section className="mb-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xl font-black text-amiko-green">Tareas Pendientes</h2>
-          <StatusPill>Demo</StatusPill>
+      <section className="mb-7 rounded-[24px] bg-gradient-to-br from-amiko-sky to-white p-5 shadow-card">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-blue">
+              Esta semana
+            </p>
+            <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequeños avances que cuentan</h2>
+          </div>
+          <Link
+            href="/progress"
+            className="focus-ring shrink-0 rounded-full bg-amiko-green px-3 py-2 text-xs font-black text-white shadow-sm transition hover:brightness-95"
+          >
+            Ver logros
+          </Link>
         </div>
-        <div className="space-y-3">
-          {recentTasks.map((task) => (
-            <Link
-              key={task.id}
-              href={`/tasks/${task.id}`}
-              className="focus-ring flex items-center gap-3 rounded-xl bg-white p-3 shadow-card"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amiko-mint font-black text-green-800">
-                {task.subject.slice(0, 1)}
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate font-black text-amiko-ink">{task.title}</h3>
-                <p className="text-sm font-bold text-amiko-muted">{task.subject}</p>
-              </div>
-              <span className="rounded-full bg-amiko-sky px-3 py-1 text-xs font-black text-amiko-blue">
-                {task.status}
-              </span>
-            </Link>
+        <div className="grid grid-cols-2 gap-3">
+          {weekSummary.map((item) => (
+            <div key={item.label} className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className={`text-3xl font-black ${item.tone}`}>{item.value}</p>
+              <p className="mt-1 text-xs font-bold leading-5 text-amiko-muted">{item.label}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <StudentProfileCard />
-        <div className="hidden lg:block">
-          <ProgressSummary />
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black text-amiko-ink">Para acompañar hoy</h2>
+            <p className="mt-1 text-sm font-bold text-amiko-muted">Elige solo lo que necesitas ahora.</p>
+          </div>
+          <Link href="/acompanamiento" className="text-xs font-black text-amiko-blue">
+            Ver todo
+          </Link>
         </div>
-      </div>
+        <div className="space-y-3">
+          {quickActions.map((action) => (
+            <Link
+              key={action.title}
+              href={action.href}
+              className="focus-ring flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5"
+            >
+              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${action.tone}`}>
+                <AmikoIcon name={action.icon} className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-black text-amiko-ink">{action.title}</span>
+                <span className="mt-1 block text-sm font-bold leading-5 text-amiko-muted">
+                  {action.description}
+                </span>
+              </span>
+              <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-slate-400" />
+            </Link>
+          ))}
+        </div>
+      </section>
     </AppShell>
   );
 }

@@ -8,7 +8,7 @@ export function AdaptedTaskResult() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-green">
-              AMIKO responde
+              Amiko responde
             </p>
             <h2 className="mt-2 text-3xl font-black text-amiko-ink">{adaptedTask.title}</h2>
             <p className="mt-1 font-bold text-amiko-muted">{adaptedTask.subject}</p>
@@ -18,11 +18,9 @@ export function AdaptedTaskResult() {
 
         <div className="mt-6 rounded-xl bg-amiko-sky p-5">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-navy">
-            Explicación simple
+            Resumen simple
           </p>
-          <p className="mt-3 text-xl font-black leading-8 text-amiko-ink">
-            {adaptedTask.simpleSummary}
-          </p>
+          <p className="mt-3 text-xl font-black leading-8 text-amiko-ink">{adaptedTask.simpleSummary}</p>
         </div>
 
         <div className="mt-6 space-y-3">
@@ -36,10 +34,10 @@ export function AdaptedTaskResult() {
                   <h3 className="text-lg font-black leading-7 text-amiko-ink">{step.instruction}</h3>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <p className="rounded-lg bg-amiko-mint px-3 py-2 text-sm font-bold text-green-900">
-                      Visual: {step.visualSupport}
+                      Apoyo visual: {step.visualSupport}
                     </p>
                     <p className="rounded-lg bg-amiko-cream px-3 py-2 text-sm font-bold text-amiko-ink">
-                      Adulto: {step.adultSupport}
+                      Para acompañar: {step.adultSupport}
                     </p>
                   </div>
                 </div>
@@ -52,22 +50,22 @@ export function AdaptedTaskResult() {
       <aside className="space-y-5">
         <Card className="bg-amiko-green text-white">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-green-100">
-            Regulación emocional
+            Apoyo para el adulto
           </p>
           <h2 className="mt-2 text-2xl font-black">Pausa y acompaña</h2>
           <p className="mt-3 leading-7 text-green-50">{adaptedTask.emotionalSupport}</p>
         </Card>
         <Card>
           <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-blue">
-            Siguiente paso
+            Después de la tarea
           </p>
-          <h2 className="mt-2 text-2xl font-black text-amiko-ink">Abrir modo niño</h2>
+          <h2 className="mt-2 text-2xl font-black text-amiko-ink">Guarda lo que funcionó</h2>
           <p className="mt-3 leading-7 text-amiko-muted">
-            Muestra una instrucción por pantalla y registra avances, ayudas y pausas.
+            Una nota breve puede ayudarte a recordar qué apoyo resultó útil hoy.
           </p>
           <div className="mt-5">
-            <ButtonLink href="/child-mode/task-1" variant="secondary">
-              Continuar paso a paso
+            <ButtonLink href="/mi-dia" variant="secondary">
+              Registrar después
             </ButtonLink>
           </div>
         </Card>
