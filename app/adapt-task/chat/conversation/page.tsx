@@ -105,7 +105,19 @@ export default function ConversationPage() {
       });
 
       const data = await res.json();
-      const replyText = data.text ?? data.error ?? "No pude procesar tu mensaje.";
+
+      if (data.error) {
+        // Mensaje amigable al estilo Amiko para cuotas, caídas o errores de API
+        const amikoFriendlyError = "¡Uy! En este momento mi cabecita está procesando muchas cosas a la vez y me cansé un poquito. 🧠✨ ¿Podrías intentar enviarme tu mensaje de nuevo en unos segundos? ¡Aquí te espero con gusto!";
+        
+        setMessages((prev) => [
+          ...prev,
+          { id: Date.now().toString(), role: "model", text: amikoFriendlyError },
+        ]);
+        return;
+      }
+
+      const replyText = data.text ?? "No pude procesar tu mensaje.";
 
       setMessages((prev) => [
         ...prev,
@@ -114,7 +126,7 @@ export default function ConversationPage() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: "model", text: "Hubo un error de conexión. Intenta de nuevo." },
+        { id: Date.now().toString(), role: "model", text: "¡Uy! Parece que hubo un pequeño problema de conexión. ¿Volvemos a intentarlo en unos segundos?" },
       ]);
     } finally {
       setLoading(false);
