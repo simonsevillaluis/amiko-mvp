@@ -51,6 +51,7 @@ export default function StudentOnboardingPage() {
   const router = useRouter();
   const [studentName, setStudentName] = useState("");
   const [age, setAge] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [educationLevel, setEducationLevel] = useState<EducationLevel | "">("");
   const [gradeYear, setGradeYear] = useState("");
   const [supportLevel, setSupportLevel] = useState("medio");
@@ -62,6 +63,7 @@ export default function StudentOnboardingPage() {
   async function handleSubmit() {
     const parsedAge = Number(age);
     const nameRegex = /^[\p{L}\s''.\-]{2,}$/u;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!studentName.trim() || !age.trim() || !educationLevel || !gradeYear) {
       setError("Agrega nombre, edad y grado escolar para crear el perfil.");
@@ -73,8 +75,13 @@ export default function StudentOnboardingPage() {
       return;
     }
 
-    if (!Number.isInteger(parsedAge) || parsedAge < 1 || parsedAge > 21) {
-      setError("Ingresa una edad válida para el perfil del estudiante.");
+    if (!Number.isInteger(parsedAge) || parsedAge < 4 || parsedAge > 25) {
+      setError("La edad debe ser un número entre 4 y 25 años.");
+      return;
+    }
+
+    if (studentEmail.trim() && !emailRegex.test(studentEmail.trim())) {
+      setError("El correo ingresado no es válido.");
       return;
     }
 
@@ -89,6 +96,7 @@ export default function StudentOnboardingPage() {
         gradeYear,
         supportLevel,
         visualPreferences,
+        studentEmail,
       );
 
       if (!result.success) {
@@ -186,7 +194,30 @@ export default function StudentOnboardingPage() {
             value={studentName}
             onChange={setStudentName}
           />
-          <Field label="Edad" type="number" value={age} onChange={setAge} />
+
+          {/* Age — text+inputMode to avoid browser number-input quirks (negatives, decimals) */}
+          <label className="block">
+            <span className="mb-2 block text-sm font-black text-amiko-ink">Edad</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ej: 10"
+              value={age}
+              onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
+              className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none placeholder:text-slate-400"
+            />
+            <p className="mt-1.5 text-xs font-bold text-amiko-muted">Entre 4 y 25 años</p>
+          </label>
+
+          <Field
+            label="Correo del estudiante (si tiene)"
+            type="email"
+            placeholder="Ej: nombre@escuela.com"
+            value={studentEmail}
+            onChange={setStudentEmail}
+            optional
+          />
 
           <fieldset className="space-y-3">
             <legend className="text-sm font-black text-amiko-ink">Grado escolar</legend>

@@ -28,7 +28,11 @@ export default async function ProfilePage() {
     getStudentProfiles(),
   ]);
 
-  const adultName = profile?.full_name?.split(" ")[0] ?? "Adulto";
+  const metaFullName =
+    (user.user_metadata?.full_name as string | undefined) ??
+    (user.user_metadata?.name as string | undefined);
+  const displayFullName = profile?.full_name?.trim() || metaFullName?.trim() || "";
+  const adultName = displayFullName.split(" ")[0] || "Adulto";
   const adultInitial = adultName.slice(0, 1).toUpperCase();
 
   return (
@@ -41,10 +45,10 @@ export default async function ProfilePage() {
           adultInitial={adultInitial}
         />
         <div className="text-center">
-          <p className="text-xl font-black text-amiko-ink">{profile?.full_name ?? adultName}</p>
+          <p className="text-xl font-black text-amiko-ink">{displayFullName || adultName}</p>
           <p className="mt-0.5 text-sm font-bold text-amiko-muted">{roleLabel(profile?.role)}</p>
           <EditProfileForm
-            initialFullName={profile?.full_name ?? ""}
+            initialFullName={displayFullName}
             initialRole={(profile?.role as "parent" | "caregiver" | "professional" | null) ?? null}
           />
         </div>
@@ -56,7 +60,7 @@ export default async function ProfilePage() {
           <p className="text-[11px] font-black uppercase tracking-widest text-amiko-muted">Mi cuenta</p>
         </div>
         {[
-          { label: "Nombre", value: profile?.full_name?.trim() || "Sin nombre aún" },
+          { label: "Nombre", value: displayFullName || "Sin nombre aún" },
           { label: "Correo", value: user.email ?? "—" },
           { label: "Rol", value: roleLabel(profile?.role) },
         ].map((row, i, arr) => (

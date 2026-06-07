@@ -22,7 +22,13 @@ export default async function DashboardPage() {
   // (getOrSyncProfile completa full_name/role desde los metadatos de auth si faltan)
   const profile = await getOrSyncProfile(user.id);
 
-  const adultName = profile?.full_name?.split(" ")[0] || "Adulto";
+  const metaFullName =
+    (user.user_metadata?.full_name as string | undefined) ??
+    (user.user_metadata?.name as string | undefined);
+  const adultName =
+    profile?.full_name?.trim()?.split(" ")[0] ||
+    metaFullName?.trim()?.split(" ")[0] ||
+    "Adulto";
 
   // Consultar estudiantes reales del usuario
   const { data: students } = await supabase

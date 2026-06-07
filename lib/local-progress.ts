@@ -17,8 +17,13 @@ export type LocalProgressEvent = {
   timestamp: string;
 };
 
-const STORAGE_KEY = "amiko_progress_events";
-const CHECKIN_KEY = "amiko_last_checkin";
+function getKeys() {
+  const isDemo = typeof window !== "undefined" && window.location.pathname.startsWith("/demo");
+  return {
+    storageKey: isDemo ? "amiko_demo_progress_events" : "amiko_progress_events",
+    checkinKey: isDemo ? "amiko_demo_last_checkin" : "amiko_last_checkin",
+  };
+}
 
 function generateId(): string {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -43,7 +48,7 @@ export function saveProgressEvent(
   events.push(event);
 
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    localStorage.setItem(getKeys().storageKey, JSON.stringify(events));
   }
 
   return event;
@@ -53,7 +58,7 @@ export function getProgressEvents(): LocalProgressEvent[] {
   if (typeof window === "undefined") return [];
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(getKeys().storageKey);
     return stored ? (JSON.parse(stored) as LocalProgressEvent[]) : [];
   } catch {
     return [];
@@ -62,7 +67,7 @@ export function getProgressEvents(): LocalProgressEvent[] {
 
 export function clearProgressEvents(): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(getKeys().storageKey);
   }
 }
 
@@ -86,7 +91,7 @@ export function shouldShowCheckin(): boolean {
   if (typeof window === "undefined") return false;
 
   try {
-    const lastCheckin = localStorage.getItem(CHECKIN_KEY);
+    const lastCheckin = localStorage.getItem(getKeys().checkinKey);
     if (!lastCheckin) return true;
 
     const last = new Date(lastCheckin);
@@ -101,7 +106,7 @@ export function shouldShowCheckin(): boolean {
 
 export function markCheckinDone(): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(CHECKIN_KEY, new Date().toISOString());
+    localStorage.setItem(getKeys().checkinKey, new Date().toISOString());
   }
 }
 

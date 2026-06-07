@@ -17,10 +17,11 @@ create table if not exists public.student_profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
-  age integer not null check (age between 1 and 21),
+  age integer not null check (age between 4 and 25),
   school_grade text not null,
   support_level text not null check (support_level in ('bajo', 'medio', 'alto')),
   visual_preferences text,
+  email text,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -257,7 +258,7 @@ begin
   on conflict (id) do update
   set
     email = excluded.email,
-    full_name = coalesce(public.profiles.full_name, excluded.full_name),
+    full_name = coalesce(nullif(trim(public.profiles.full_name), ''), excluded.full_name),
     auth_provider = coalesce(public.profiles.auth_provider, excluded.auth_provider),
     updated_at = now();
 

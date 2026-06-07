@@ -24,11 +24,14 @@ export async function createStudent(
   gradeYear: string,
   supportLevel: string,
   visualPreferences: string,
+  studentEmail?: string,
 ): Promise<CreateStudentResult> {
   const trimmedName = studentName.trim();
   const parsedAge = Number(age);
   const trimmedGradeYear = gradeYear.trim();
   const trimmedVisualPreferences = visualPreferences.trim();
+  const trimmedEmail = studentEmail?.trim() ?? "";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const supportedLevels = ["bajo", "medio", "alto"];
 
   if (!trimmedName || !age.trim() || !educationLevel || !trimmedGradeYear) {
@@ -42,8 +45,12 @@ export async function createStudent(
     };
   }
 
-  if (!Number.isInteger(parsedAge) || parsedAge < 1 || parsedAge > 21) {
-    return { success: false, error: "Ingresa una edad válida para el perfil del estudiante." };
+  if (!Number.isInteger(parsedAge) || parsedAge < 4 || parsedAge > 25) {
+    return { success: false, error: "La edad debe ser un número entre 4 y 25 años." };
+  }
+
+  if (trimmedEmail && !emailRegex.test(trimmedEmail)) {
+    return { success: false, error: "El correo ingresado no es válido." };
   }
 
   if (!Object.keys(educationLevelLabels).includes(educationLevel)) {
@@ -69,6 +76,7 @@ export async function createStudent(
     school_grade: schoolGrade,
     support_level: support,
     visual_preferences: trimmedVisualPreferences || null,
+    email: trimmedEmail || null,
     notes: null,
   });
 

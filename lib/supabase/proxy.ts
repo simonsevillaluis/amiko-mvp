@@ -9,6 +9,7 @@ const protectedRoutes = [
   "/bienestar",
   // "/child-mode", // Habilitado acceso directo para pruebas de demo
   "/child-portal",
+  "/student-portal",
   "/comunidad",
   "/dashboard",
   "/historial",
@@ -19,6 +20,7 @@ const protectedRoutes = [
   "/register/student",
   "/settings",
   // "/student-mode", // Habilitado acceso directo para pruebas de demo
+  "/student-portal",
   "/students",
   "/tasks",
   "/teacher",
@@ -42,7 +44,7 @@ function isDevelopmentChildPortalPreview(request: NextRequest) {
   return (
     localPreviewEnabled &&
     searchParams.get("demo") === "1" &&
-    startsWithRoute(pathname, ["/child-portal"])
+    startsWithRoute(pathname, ["/child-portal", "/student-portal"])
   );
 }
 

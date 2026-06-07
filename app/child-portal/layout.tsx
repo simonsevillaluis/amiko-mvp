@@ -1,9 +1,7 @@
-import { ChildShell } from "@/components/child-shell";
-
-export default function ChildPortalLayout({
+export default function ChildPortalLegacyLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ChildShell>{children}</ChildShell>;
+  return <>{children}</>;
 }

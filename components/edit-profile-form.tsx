@@ -7,10 +7,10 @@ import { updateProfile } from "@/app/actions/update-profile";
 
 type Role = "parent" | "caregiver" | "professional";
 
-const roleOptions: Array<{ value: Role; label: string }> = [
+const roleOptions: Array<{ value: Role; label: string; disabled?: boolean }> = [
   { value: "caregiver", label: "Cuidador principal" },
   { value: "parent", label: "Padre / Madre" },
-  { value: "professional", label: "Profesional" },
+  { value: "professional", label: "Profesional", disabled: true },
 ];
 
 export function EditProfileForm({
@@ -102,6 +102,19 @@ export function EditProfileForm({
                 <div className="grid gap-2">
                   {roleOptions.map((option) => {
                     const isActive = role === option.value;
+                    if (option.disabled) {
+                      return (
+                        <div
+                          key={option.value}
+                          className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-2.5"
+                        >
+                          <span className="text-sm font-black text-slate-300">{option.label}</span>
+                          <span className="text-[10px] font-black uppercase tracking-wide text-slate-300">
+                            Próximamente
+                          </span>
+                        </div>
+                      );
+                    }
                     return (
                       <button
                         key={option.value}

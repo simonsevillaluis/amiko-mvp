@@ -29,37 +29,29 @@ export async function updateProfile(
     return { success: false, error: "Agrega tu nombre para continuar." };
   }
 
-  // Intentar update primero
-  const { data, error: updateError } = await supabase
+  // Upsert atómico — funciona tanto si la fila existe como si no.
+  const { error: upsertError } = await supabase
     .from("profiles")
-    .update({
-      full_name: sanitizedName,
-      role: sanitizedRole,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id)
-    .select("id")
-    .maybeSingle();
+    .upsert(
+      {
+        id: user.id,
+        email: user.email,
+        full_name: sanitizedName,
+        role: sanitizedRole,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
 
-  if (updateError) {
-    console.error("[updateProfile] update failed:", updateError);
+  if (upsertError) {
+    console.error("[updateProfile] upsert failed:", upsertError.message, upsertError.code);
     return { success: false, error: "No pudimos guardar los cambios. Intenta de nuevo." };
   }
 
-  // Si la fila no existía, insertarla
-  if (!data) {
-    const { error: insertError } = await supabase.from("profiles").insert({
-      id: user.id,
-      email: user.email,
-      full_name: sanitizedName,
-      role: sanitizedRole,
-    });
-
-    if (insertError) {
-      console.error("[updateProfile] insert failed:", insertError);
-      return { success: false, error: "No pudimos guardar los cambios. Intenta de nuevo." };
-    }
-  }
+  // Sincronizar también en user_metadata para que el fallback del dashboard siempre funcione.
+  await supabase.auth.updateUser({
+    data: { full_name: sanitizedName, role: sanitizedRole },
+  });
 
   revalidatePath("/students");
   revalidatePath("/dashboard");

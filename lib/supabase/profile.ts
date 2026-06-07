@@ -44,13 +44,15 @@ export async function getOrSyncProfile(userId: string): Promise<AdultProfile | n
         .insert({
           id: userId,
           email: user.email,
-          full_name: metaName || "",
+          full_name: metaName ?? null,
           role: metaRole,
         })
         .select("full_name, role, avatar_url")
         .maybeSingle();
-      
-      if (!insertError && newProfile) {
+
+      if (insertError) {
+        console.error("[getOrSyncProfile] insert error:", insertError.message, insertError.code);
+      } else if (newProfile) {
         profile = newProfile;
       }
     }
@@ -81,11 +83,15 @@ export async function getOrSyncProfile(userId: string): Promise<AdultProfile | n
     return profile as AdultProfile | null;
   }
 
-  const { data: synced } = await supabase
+  const { data: synced, error: upsertError } = await supabase
     .from("profiles")
     .upsert(patch)
     .select("full_name, role, avatar_url")
     .maybeSingle();
+
+  if (upsertError) {
+    console.error("[getOrSyncProfile] upsert error:", upsertError.message, upsertError.code);
+  }
 
   return (synced as AdultProfile | null) ?? (profile as AdultProfile | null);
 }

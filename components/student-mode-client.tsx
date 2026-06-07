@@ -212,8 +212,19 @@ export function StudentModeClient() {
             <h1 className="text-lg font-black leading-tight text-amiko-ink">{adaptedTask.subject}</h1>
           </div>
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amiko-green text-base font-black text-white">
-            {student.name.charAt(0)}
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amiko-green text-white">
+            <svg
+              className="h-[55%] w-[55%] text-white"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </div>
         </div>
       </header>
