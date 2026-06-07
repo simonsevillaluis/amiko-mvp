@@ -1,37 +1,7 @@
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
-import { student } from "@/lib/mock-data";
-
-const metrics = [
-  {
-    value: "3",
-    label: "Tareas acompañadas",
-    icon: "task" as AmikoIconName,
-    valueTone: "text-amiko-blue",
-    iconTone: "bg-amiko-sky text-amiko-blue",
-  },
-  {
-    value: "8",
-    label: "Pasos completados",
-    icon: "check" as AmikoIconName,
-    valueTone: "text-amiko-green",
-    iconTone: "bg-amiko-mint text-green-800",
-  },
-  {
-    value: "2",
-    label: "Veces pidió ayuda",
-    icon: "help" as AmikoIconName,
-    valueTone: "text-amiko-navy",
-    iconTone: "bg-amiko-cream text-amiko-navy",
-  },
-  {
-    value: "1",
-    label: "Pausa usada",
-    icon: "pause" as AmikoIconName,
-    valueTone: "text-amiko-blue",
-    iconTone: "bg-blue-50 text-amiko-blue",
-  },
-];
+import { getFirstStudent } from "@/lib/supabase/students";
+import { createClient } from "@/lib/supabase/server";
 
 const skillsInProgress: Array<{
   category: string;
@@ -109,12 +79,88 @@ const nextAchievements = [
   "Seguir tres pasos simples.",
 ];
 
-export default function ProgressPage() {
+export default async function ProgressPage() {
+  const firstStudent = await getFirstStudent();
+  const studentName = firstStudent?.name ?? "tu estudiante";
+  const studentId = firstStudent?.id;
+
+  let completedTasksCount = 0;
+  let stepsCompletedCount = 0;
+  let helpRequestedCount = 0;
+  let frustrationReportedCount = 0;
+
+  if (studentId) {
+    const supabase = await createClient();
+    const [
+      { count: completed },
+      { count: steps },
+      { count: help },
+      { count: frustration },
+    ] = await Promise.all([
+      supabase
+        .from("tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", studentId)
+        .eq("status", "completed"),
+      supabase
+        .from("progress_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", studentId)
+        .eq("event_type", "step_completed"),
+      supabase
+        .from("progress_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", studentId)
+        .eq("event_type", "help_requested"),
+      supabase
+        .from("progress_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", studentId)
+        .eq("event_type", "frustration_reported"),
+    ]);
+
+    completedTasksCount = completed || 0;
+    stepsCompletedCount = steps || 0;
+    helpRequestedCount = help || 0;
+    frustrationReportedCount = frustration || 0;
+  }
+
+  const metricsList = [
+    {
+      value: String(completedTasksCount),
+      label: "Tareas acompañadas",
+      icon: "task" as AmikoIconName,
+      valueTone: "text-amiko-blue",
+      iconTone: "bg-amiko-sky text-amiko-blue",
+    },
+    {
+      value: String(stepsCompletedCount),
+      label: "Pasos completados",
+      icon: "check" as AmikoIconName,
+      valueTone: "text-amiko-green",
+      iconTone: "bg-amiko-mint text-green-800",
+    },
+    {
+      value: String(helpRequestedCount),
+      label: "Veces pidió ayuda",
+      icon: "help" as AmikoIconName,
+      valueTone: "text-amiko-navy",
+      iconTone: "bg-amiko-cream text-amiko-navy",
+    },
+    {
+      value: String(frustrationReportedCount),
+      label: "Pausa usada",
+      icon: "pause" as AmikoIconName,
+      valueTone: "text-amiko-blue",
+      iconTone: "bg-blue-50 text-amiko-blue",
+    },
+  ];
+
   return (
     <DetailShell title="Logros" fallbackHref="/acompanamiento">
       <section className="mb-6">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-green">
-          Avances de {student.name}
+          Avances de {studentName}
         </p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-amiko-ink">Logros</h1>
         <p className="mt-2 text-base font-bold leading-7 text-amiko-muted">
@@ -140,7 +186,7 @@ export default function ProgressPage() {
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2.5">
-          {metrics.map((metric) => (
+          {metricsList.map((metric) => (
             <div
               key={metric.label}
               className="rounded-[20px] border border-blue-100 bg-slate-50/70 px-3 py-3"
@@ -214,7 +260,7 @@ export default function ProgressPage() {
         </div>
 
         <p className="mt-3 rounded-2xl bg-amiko-sky px-4 py-3 text-xs font-bold leading-5 text-amiko-navy">
-          Estos porcentajes muestran el avance hacia una meta semanal. No miden la capacidad de {student.name}.
+          Estos porcentajes muestran el avance hacia una meta semanal. No miden la capacidad de {studentName}.
         </p>
       </section>
 

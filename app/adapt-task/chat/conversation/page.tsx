@@ -4,6 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
+import {
+  CHAT_FALLBACK_PATH,
+  CHAT_HOME_PATH,
+  getSafeChatReturnPath,
+  withChatFrom,
+} from "@/lib/chat-navigation";
 import { student } from "@/lib/mock-data";
 
 const MAX_MESSAGES = 10;
@@ -48,9 +54,11 @@ export default function ConversationPage() {
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
   const [mode, setMode] = useState<ModeKey>("tareas");
+  const [returnPath, setReturnPath] = useState(CHAT_FALLBACK_PATH);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const limitReached = userMessageCount >= MAX_MESSAGES;
+  const chatHomeHref = withChatFrom(CHAT_HOME_PATH, returnPath);
 
   // Parse URL params and show only greeting
   useEffect(() => {
@@ -60,7 +68,9 @@ export default function ConversationPage() {
       ? (modeParam as ModeKey)
       : "tareas";
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(resolvedMode);
+    setReturnPath(getSafeChatReturnPath(params.get("from"), CHAT_FALLBACK_PATH));
 
     const greetings: Record<ModeKey, string> = {
       tareas: `Hola, Luis. Cuéntame qué necesita ${student.name} y buscamos juntos un primer paso.`,
@@ -198,7 +208,7 @@ export default function ConversationPage() {
         <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/95 px-4 py-3 backdrop-blur-xl">
           <div className="grid grid-cols-[40px_1fr_40px] items-center gap-3">
             <Link
-              href="/adapt-task/chat"
+              href={returnPath}
               aria-label="Volver"
               className="focus-ring flex h-10 w-10 items-center justify-center rounded-full text-amiko-navy transition hover:bg-amiko-sky"
             >
@@ -308,7 +318,7 @@ export default function ConversationPage() {
                   Ver Premium
                 </Link>
                 <Link
-                  href="/adapt-task/chat"
+                  href={chatHomeHref}
                   className="focus-ring flex min-h-11 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/20"
                 >
                   Volver mañana

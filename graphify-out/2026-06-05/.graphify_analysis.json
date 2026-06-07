@@ -1,0 +1,416 @@
+{
+  "communities": {
+    "0": [
+      "adapt_task_page",
+      "adapt_task_page_adapttaskpage",
+      "adapt_task_page_quickoptions",
+      "alerts_page",
+      "alerts_page_alerts",
+      "alerts_page_alertspage",
+      "bienestar_page",
+      "bienestar_page_bienestarpage",
+      "bienestar_page_quickneeds",
+      "bienestar_page_wellnesssections",
+      "components_amiko_icon",
+      "components_amiko_icon_amikoicon",
+      "components_detail_shell",
+      "components_detail_shell_detailshell",
+      "faq_page",
+      "faq_page_faqitem",
+      "faq_page_faqpage",
+      "faq_page_faqs",
+      "historial_page",
+      "historial_page_activities",
+      "historial_page_filter",
+      "historial_page_filterbutton",
+      "historial_page_filters",
+      "historial_page_historypage",
+      "mi_dia_page",
+      "mi_dia_page_groups",
+      "mi_dia_page_tasklogpage",
+      "progress_page",
+      "progress_page_achievements",
+      "progress_page_metrics",
+      "progress_page_nextachievements",
+      "progress_page_progresspage",
+      "progress_page_skillsinprogress",
+      "students_page",
+      "students_page_profilepage"
+    ],
+    "1": [
+      "agents_adapted_tasks_table",
+      "agents_progress_events_table",
+      "agents_tasks_table",
+      "agents_users_table",
+      "app_child_mode_id_page_tsx_id_page",
+      "app_tasks_id_page_tsx_id_page",
+      "components_adapted_task_result",
+      "components_child_mode_client",
+      "components_progress_summary",
+      "components_progress_summary_cardstyles",
+      "components_ui",
+      "components_ui_buttonlink",
+      "components_ui_card",
+      "components_ui_demonotice",
+      "components_ui_fieldlabel",
+      "components_ui_pageheader",
+      "components_ui_statuspill",
+      "id_page_childmodepage",
+      "id_page_taskresultpage",
+      "lib_mock_data",
+      "lib_mock_data_adaptedstep",
+      "lib_mock_data_adaptedtask",
+      "lib_mock_data_progressevent",
+      "lib_mock_data_recenttasks",
+      "lib_mock_data_student",
+      "lib_mock_data_studentprofile",
+      "teacher_page",
+      "teacher_page_teacherpage"
+    ],
+    "2": [
+      "callback_route",
+      "callback_route_get",
+      "onboarding_page",
+      "onboarding_page_onboardingpage",
+      "onboarding_page_role",
+      "onboarding_page_roleoptions",
+      "proxy",
+      "proxy_config",
+      "proxy_proxy",
+      "signout_route",
+      "signout_route_get",
+      "student_page",
+      "student_page_field",
+      "student_page_studentonboardingpage",
+      "supabase_client",
+      "supabase_client_createclient",
+      "supabase_env",
+      "supabase_env_getsupabasepublishablekey",
+      "supabase_env_getsupabaseurl",
+      "supabase_env_hassupabaseenv",
+      "supabase_env_requiresupabaseenv",
+      "supabase_proxy",
+      "supabase_proxy_authroutes",
+      "supabase_proxy_protectedroutes",
+      "supabase_proxy_startswithroute",
+      "supabase_proxy_updatesession",
+      "supabase_server",
+      "supabase_server_createclient"
+    ],
+    "3": [
+      "acompanamiento_page",
+      "acompanamiento_page_recursospage",
+      "acompanamiento_page_tools",
+      "chat_page",
+      "chat_page_amikoiapage",
+      "chat_page_modekey",
+      "chat_page_modepanels",
+      "chat_page_modes",
+      "components_app_shell",
+      "components_app_shell_amikologo",
+      "components_app_shell_appshell",
+      "components_app_shell_isnavitemactive",
+      "components_app_shell_navitems",
+      "comunidad_page",
+      "comunidad_page_comunidadpage",
+      "comunidad_page_members",
+      "dashboard_page",
+      "dashboard_page_dashboardpage",
+      "dashboard_page_quickactions",
+      "dashboard_page_weeksummary"
+    ],
+    "4": [
+      "app_page",
+      "app_page_homepage",
+      "components_auth_screen",
+      "components_auth_screen_autherror",
+      "components_auth_screen_authinput",
+      "components_auth_screen_eyeicon",
+      "components_auth_screen_eyeofficon",
+      "components_auth_screen_getautherrormessage",
+      "components_auth_screen_googlebutton",
+      "components_auth_screen_googleicon",
+      "components_auth_screen_isvalidadultname",
+      "components_auth_screen_isvalidemail",
+      "components_auth_screen_loginscreen",
+      "components_auth_screen_registerscreen",
+      "components_auth_screen_role",
+      "components_auth_screen_roleoptions",
+      "login_page",
+      "login_page_loginpage",
+      "register_page",
+      "register_page_registerpage"
+    ],
+    "5": [
+      "tsconfig",
+      "tsconfig_compileroptions",
+      "tsconfig_compileroptions_allowjs",
+      "tsconfig_compileroptions_esmoduleinterop",
+      "tsconfig_compileroptions_incremental",
+      "tsconfig_compileroptions_isolatedmodules",
+      "tsconfig_compileroptions_jsx",
+      "tsconfig_compileroptions_lib",
+      "tsconfig_compileroptions_module",
+      "tsconfig_compileroptions_moduleresolution",
+      "tsconfig_compileroptions_noemit",
+      "tsconfig_compileroptions_paths",
+      "tsconfig_compileroptions_plugins",
+      "tsconfig_compileroptions_resolvejsonmodule",
+      "tsconfig_compileroptions_skiplibcheck",
+      "tsconfig_compileroptions_strict",
+      "tsconfig_compileroptions_target",
+      "tsconfig_exclude",
+      "tsconfig_include",
+      "tsconfig_paths"
+    ],
+    "6": [
+      "eslint_config",
+      "package",
+      "package_devdependencies",
+      "package_devdependencies_autoprefixer",
+      "package_devdependencies_eslint",
+      "package_devdependencies_postcss",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_types_node",
+      "package_devdependencies_types_react",
+      "package_devdependencies_typescript",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_start",
+      "package_version"
+    ],
+    "7": [
+      "agents_amiko",
+      "agents_mvp",
+      "agents_nextjs",
+      "agents_openai_api",
+      "agents_supabase",
+      "package_dependencies",
+      "package_dependencies_google_generative_ai",
+      "package_dependencies_next",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_supabase_supabase_js",
+      "readme_amiko_mvp",
+      "skill_frontend_design"
+    ],
+    "8": [
+      "settings_page",
+      "settings_page_planrows",
+      "settings_page_prefrows",
+      "settings_page_privacyrows",
+      "settings_page_sectionlabel",
+      "settings_page_settingcard",
+      "settings_page_settingrow",
+      "settings_page_settingspage",
+      "settings_page_supportrows"
+    ],
+    "9": [
+      "conversation_page",
+      "conversation_page_contextoptions",
+      "conversation_page_conversationpage",
+      "conversation_page_getuserprompt",
+      "conversation_page_message",
+      "conversation_page_modefallbacks",
+      "conversation_page_modekey",
+      "conversation_page_modekeys"
+    ],
+    "10": [
+      "skills_lock",
+      "skills_lock_frontend_design_computedhash",
+      "skills_lock_frontend_design_skillpath",
+      "skills_lock_frontend_design_source",
+      "skills_lock_frontend_design_sourcetype",
+      "skills_lock_skills",
+      "skills_lock_skills_frontend_design",
+      "skills_lock_version"
+    ],
+    "11": [
+      "amiko_brand_identity",
+      "amiko_logo_secondary_svg",
+      "amiko_logo_svg"
+    ],
+    "12": [
+      "app_layout",
+      "app_layout_metadata",
+      "app_layout_rootlayout"
+    ],
+    "13": [
+      "claude_settings",
+      "claude_settings_permissions",
+      "claude_settings_permissions_allow"
+    ],
+    "14": [
+      "claude_settings_local",
+      "claude_settings_local_permissions",
+      "claude_settings_local_permissions_allow"
+    ],
+    "15": [
+      "app_not_found",
+      "app_not_found_notfound"
+    ],
+    "16": [
+      "chat_route",
+      "chat_route_post"
+    ],
+    "17": [
+      "postcss_config",
+      "postcss_config_config"
+    ],
+    "18": [
+      "professionals_page",
+      "professionals_page_professionalscomingsoonpage"
+    ],
+    "19": [
+      "tailwind_config",
+      "tailwind_config_config"
+    ],
+    "20": [
+      "next_config"
+    ],
+    "21": [
+      "next_env_d"
+    ]
+  },
+  "cohesion": {
+    "0": 0.09915966386554621,
+    "1": 0.12962962962962962,
+    "2": 0.12698412698412698,
+    "3": 0.12105263157894737,
+    "4": 0.11578947368421053,
+    "5": 0.1,
+    "6": 0.1111111111111111,
+    "7": 0.15384615384615385,
+    "8": 0.2222222222222222,
+    "9": 0.25,
+    "10": 0.25,
+    "11": 1.0,
+    "12": 0.6666666666666666,
+    "13": 0.6666666666666666,
+    "14": 0.6666666666666666,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0
+  },
+  "gods": [
+    {
+      "id": "components_amiko_icon_amikoicon",
+      "label": "AmikoIcon()",
+      "degree": 18
+    },
+    {
+      "id": "tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 16
+    },
+    {
+      "id": "lib_mock_data_student",
+      "label": "student",
+      "degree": 12
+    },
+    {
+      "id": "components_detail_shell_detailshell",
+      "label": "DetailShell()",
+      "degree": 10
+    },
+    {
+      "id": "components_app_shell_appshell",
+      "label": "AppShell()",
+      "degree": 7
+    },
+    {
+      "id": "lib_mock_data_studentprofile",
+      "label": "StudentProfile",
+      "degree": 7
+    },
+    {
+      "id": "supabase_env_requiresupabaseenv",
+      "label": "requireSupabaseEnv()",
+      "degree": 7
+    },
+    {
+      "id": "supabase_proxy_updatesession",
+      "label": "updateSession()",
+      "degree": 7
+    },
+    {
+      "id": "components_ui_card",
+      "label": "Card()",
+      "degree": 5
+    },
+    {
+      "id": "lib_mock_data_adaptedtask",
+      "label": "AdaptedTask",
+      "degree": 5
+    }
+  ],
+  "surprises": [
+    {
+      "source": "StudentProfile",
+      "target": "users table",
+      "source_files": [
+        "lib/mock-data.ts",
+        "AGENTS.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories; peripheral node `users table` unexpectedly reaches hub `StudentProfile`"
+    },
+    {
+      "source": "tasks table",
+      "target": "StudentProfile",
+      "source_files": [
+        "AGENTS.md",
+        "lib/mock-data.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (code \u2194 doc); connects across different repos/directories"
+    },
+    {
+      "source": "proxy()",
+      "target": "updateSession()",
+      "source_files": [
+        "proxy.ts",
+        "lib/supabase/proxy.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; peripheral node `proxy()` unexpectedly reaches hub `updateSession()`"
+    },
+    {
+      "source": "AMIKO",
+      "target": "frontend-design skill",
+      "source_files": [
+        "AGENTS.md",
+        ".agents/skills/frontend-design/SKILL.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "conceptually_related_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "AMIKO MVP README",
+      "target": "AMIKO MVP",
+      "source_files": [
+        "README.md",
+        "AGENTS.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; peripheral node `AMIKO MVP README` unexpectedly reaches hub `AMIKO MVP`"
+    }
+  ],
+  "tokens": {
+    "input": 184000,
+    "output": 2327
+  }
+}

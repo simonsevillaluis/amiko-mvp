@@ -1,40 +1,64 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AmikoIcon } from "@/components/amiko-icon";
+import { AvatarUpload } from "@/components/avatar-upload";
 import { DetailShell } from "@/components/detail-shell";
-import { student } from "@/lib/mock-data";
+import { EditProfileForm } from "@/components/edit-profile-form";
+import { createClient } from "@/lib/supabase/server";
+import { getOrSyncProfile } from "@/lib/supabase/profile";
+import { getStudentProfiles, studentInitial, supportLevelLabel } from "@/lib/supabase/students";
 
-export default function ProfilePage() {
+function roleLabel(role: string | null | undefined): string {
+  if (role === "parent") return "Padre / Madre";
+  if (role === "caregiver") return "Cuidador principal";
+  if (role === "professional") return "Profesional";
+  return "Adulto acompañante";
+}
+
+export default async function ProfilePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const [profile, students] = await Promise.all([
+    getOrSyncProfile(user.id),
+    getStudentProfiles(),
+  ]);
+
+  const adultName = profile?.full_name?.split(" ")[0] ?? "Adulto";
+  const adultInitial = adultName.slice(0, 1).toUpperCase();
+
   return (
     <DetailShell title="Mi Perfil">
-      {/* Avatar + photo change */}
+      {/* Avatar adulto */}
       <div className="mb-6 flex flex-col items-center gap-3">
-        <div className="relative">
-          <span className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-amiko-green to-green-700 text-4xl font-black text-white shadow-soft">
-            L
-          </span>
-          <button
-            type="button"
-            className="focus-ring absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-amiko-blue text-white shadow-card transition hover:bg-amiko-navy"
-            aria-label="Cambiar foto de perfil"
-          >
-            <AmikoIcon name="camera" className="h-4 w-4" />
-          </button>
-        </div>
+        <AvatarUpload
+          userId={user.id}
+          initialAvatarUrl={profile?.avatar_url ?? null}
+          adultInitial={adultInitial}
+        />
         <div className="text-center">
-          <p className="text-xl font-black text-amiko-ink">Luis</p>
-          <p className="mt-0.5 text-sm font-bold text-amiko-muted">Cuidador principal</p>
+          <p className="text-xl font-black text-amiko-ink">{profile?.full_name ?? adultName}</p>
+          <p className="mt-0.5 text-sm font-bold text-amiko-muted">{roleLabel(profile?.role)}</p>
+          <EditProfileForm
+            initialFullName={profile?.full_name ?? ""}
+            initialRole={(profile?.role as "parent" | "caregiver" | "professional" | null) ?? null}
+          />
         </div>
       </div>
 
-      {/* Account info */}
+      {/* Datos de la cuenta */}
       <section className="mb-5 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-card">
         <div className="border-b border-slate-100 px-4 py-3">
           <p className="text-[11px] font-black uppercase tracking-widest text-amiko-muted">Mi cuenta</p>
         </div>
         {[
-          { label: "Nombre", value: "Luis Simon" },
-          { label: "Correo", value: "simonsevilla.luis@gmail.com" },
-          { label: "Rol", value: "Cuidador principal" },
+          { label: "Nombre", value: profile?.full_name?.trim() || "Sin nombre aún" },
+          { label: "Correo", value: user.email ?? "—" },
+          { label: "Rol", value: roleLabel(profile?.role) },
         ].map((row, i, arr) => (
           <div
             key={row.label}
@@ -47,12 +71,12 @@ export default function ProfilePage() {
           </div>
         ))}
         <div className="border-t border-slate-100 px-4 py-3">
-          <button
-            type="button"
-            className="focus-ring w-full rounded-full border border-amiko-blue py-2.5 text-sm font-black text-amiko-blue transition hover:bg-amiko-sky"
+          <Link
+            href="/settings"
+            className="focus-ring block w-full rounded-full border border-amiko-blue py-2.5 text-center text-sm font-black text-amiko-blue transition hover:bg-amiko-sky"
           >
-            Editar datos
-          </button>
+            Ir a ajustes
+          </Link>
         </div>
       </section>
 
@@ -60,33 +84,70 @@ export default function ProfilePage() {
       <section className="mb-5">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-lg font-black text-amiko-ink">Personas a mi cuidado</h2>
-          <button type="button" className="text-xs font-black text-amiko-blue">
+          <Link
+            href="/register/student"
+            className="focus-ring text-xs font-black text-amiko-blue"
+          >
             + Agregar
-          </button>
+          </Link>
         </div>
-        <article className="rounded-2xl bg-gradient-to-br from-amiko-mint to-white p-4 shadow-card">
-          <div className="flex items-center gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-lg font-black text-amiko-green shadow-sm">
-              {student.name.slice(0, 1)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-black text-amiko-ink">{student.name}</p>
-              <p className="mt-0.5 text-sm font-bold text-amiko-muted">
-                {student.age} años · {student.grade}
-              </p>
-            </div>
-            <button type="button" className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition hover:bg-amiko-sky">
-              <AmikoIcon name="settings" className="h-4 w-4 text-amiko-muted" />
-            </button>
+
+        {students.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-amiko-blue/30 bg-amiko-sky/40 px-5 py-7 text-center">
+            <p className="text-sm font-black text-amiko-navy">Todavía no hay perfiles creados</p>
+            <p className="mt-1 text-xs font-bold text-amiko-muted">
+              Crea el perfil de tu estudiante para empezar a adaptar tareas con Amiko.
+            </p>
+            <Link
+              href="/register/student"
+              className="focus-ring mt-4 inline-flex min-h-10 items-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition hover:opacity-90"
+            >
+              <AmikoIcon name="sparkles" className="h-4 w-4" />
+              Crear perfil de estudiante
+            </Link>
           </div>
-          <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-bold leading-5 text-amiko-muted">
-            Comprende mejor con apoyo visual y pasos cortos.
-          </p>
-        </article>
+        ) : (
+          <div className="space-y-3">
+            {students.map((s) => (
+              <article
+                key={s.id}
+                className="rounded-2xl bg-gradient-to-br from-amiko-mint to-white p-4 shadow-card"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-lg font-black text-amiko-green shadow-sm">
+                    {studentInitial(s.name)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-amiko-ink">{s.name}</p>
+                    <p className="mt-0.5 text-sm font-bold text-amiko-muted">
+                      {s.age} años · {s.school_grade}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition hover:bg-amiko-sky"
+                    aria-label={`Ajustes de ${s.name}`}
+                  >
+                    <AmikoIcon name="settings" className="h-4 w-4 text-amiko-muted" />
+                  </button>
+                </div>
+                {s.visual_preferences || s.notes ? (
+                  <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-bold leading-5 text-amiko-muted">
+                    {s.visual_preferences ?? s.notes}
+                  </p>
+                ) : (
+                  <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-bold leading-5 text-amiko-muted">
+                    {supportLevelLabel(s.support_level)} · {s.school_grade}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Red de apoyo */}
-      <section className="mb-5">
+      <section className="mb-6">
         <h2 className="mb-3 text-lg font-black text-amiko-ink">Red de apoyo</h2>
         <Link
           href="/comunidad"
@@ -96,21 +157,32 @@ export default function ProfilePage() {
             <AmikoIcon name="users" className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-black text-amiko-ink">Red de {student.name}</span>
-            <span className="mt-0.5 block text-xs font-bold text-amiko-muted">3 personas activas · 2 invitaciones pendientes</span>
+            <span className="block text-sm font-black text-amiko-ink">Red de apoyo</span>
+            <span className="mt-0.5 block text-xs font-bold text-amiko-muted">
+              Personas de confianza que acompañan al estudiante
+            </span>
           </span>
           <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-slate-300" />
         </Link>
       </section>
 
-      {/* Volver a ajustes */}
-      <Link
-        href="/settings"
-        className="focus-ring flex items-center justify-center gap-2 rounded-full border border-slate-200 py-3 text-sm font-black text-amiko-muted transition hover:bg-slate-50"
-      >
-        <AmikoIcon name="settings" className="h-4 w-4" />
-        Ir a Ajustes
-      </Link>
+      {/* Cerrar sesión */}
+      <section className="mb-5">
+        <div className="overflow-hidden rounded-2xl border border-red-100 bg-white shadow-card">
+          <Link
+            href="/auth/signout"
+            className="focus-ring flex items-center gap-3 px-4 py-3.5 transition hover:bg-red-50"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
+              <AmikoIcon name="back" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-black text-red-500">Cerrar sesión</span>
+            </span>
+            <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-red-200" />
+          </Link>
+        </div>
+      </section>
     </DetailShell>
   );
 }

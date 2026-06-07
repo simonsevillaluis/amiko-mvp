@@ -1,113 +1,109 @@
-# 🎯 AMIKO Harness Multi-Agent
+# AMIKO Harness Multi-Agent
 
-Tu proyecto tiene un **harness especializado** con 4 agentes Copilot optimizados para diferentes aspectos de AMIKO.
+Este proyecto tiene dos capas de coordinacion para trabajar con varios agentes sin perder coherencia.
 
-## 📂 Estructura
+## 1. Constitucion Del Producto
 
+`AGENTS.md` es la fuente principal. Todo agente debe leerlo antes de cambiar codigo.
+
+Define:
+
+- Producto y alcance del MVP.
+- Prioridad actual: experiencia para padres, madres y cuidadores.
+- Reglas de marca, UX, seguridad y privacidad.
+- Reglas de IA.
+- Reglas de formularios.
+- Limites: no pagos, no marketplace, no app movil nativa, no pensum educativo.
+
+## 2. Harness Operativo
+
+`.agent-harness/` resume el contexto para ejecucion diaria.
+
+```text
+.agent-harness/
+  README.md
+  shared/
+    context.md
+    product-rules.md
+    coding-rules.md
+    ux-rules.md
+    safety-privacy.md
+  tracks/
+    frontend.md
+    backend.md
+    pedagogical.md
+    devops.md
+  task-template.md
+  review-template.md
+  handoff-template.md
 ```
+
+## 3. Agentes De GitHub Copilot
+
+Si usas GitHub Copilot, tambien existen agentes en:
+
+```text
 .github/
-├── agents/                    # Agentes especializados
-│   ├── frontend.agent.md      # React, componentes, UI/UX
-│   ├── backend.agent.md       # Supabase, APIs, base de datos
-│   ├── pedagogical.agent.md   # UX para niños con TEA
-│   └── devops.agent.md        # Deployment, CI/CD
-├── instructions/              # Instrucciones contextuales
-│   ├── frontend.instructions.md
-│   └── backend.instructions.md
-└── AGENTS.md                  # Guía central (este archivo)
+  AGENTS.md
+  agents/
+    frontend.agent.md
+    backend.agent.md
+    pedagogical.agent.md
+    devops.agent.md
+  instructions/
+    frontend.instructions.md
+    backend.instructions.md
 ```
 
-## 🚀 Cómo Usar
+## Como Pedir Trabajo
 
-### Opción 1: Slash Command (recomendado)
+Usa prompts cerrados:
+
+```text
+Trabaja en C:\Users\Luis Simon\Documents\Amiko.
+Lee AGENTS.md y .agent-harness.
+Usa el track frontend.
+
+Objetivo:
+Crear un componente TaskCard para tareas de AMIKO.
+
+Limites:
+No tocar autenticacion, Supabase ni rutas.
+
+Criterios:
+TypeScript, responsive, estados draft/adapted/in_progress/completed.
+
+Al terminar:
+Usa .agent-harness/handoff-template.md.
 ```
-@frontend Crea un componente TaskCard con colores AMIKO
-@backend Diseña el endpoint para guardar progreso
-@pedagogical ¿Es accesible este child mode para TEA?
-@devops Configura Vercel para production
-```
 
-### Opción 2: Mención en chat
-```
-"Hola @frontend, necesito una página de dashboard"
-```
+## Flujo Recomendado Para Ahorrar Creditos
 
-## 👥 Agentes
+1. Coordinador define la tarea.
+2. Un solo agente implementa.
+3. Otro agente revisa el diff o archivos modificados.
+4. Coordinador integra o pide ajustes.
 
-| Agente | Expertise | Úsalo para | Ubicación |
-|--------|-----------|-----------|-----------|
-| **Frontend** | React, Tailwind, a11y | Componentes, páginas, diseño | `.github/agents/frontend.agent.md` |
-| **Backend** | Supabase, SQL, APIs | Base de datos, endpoints, RLS | `.github/agents/backend.agent.md` |
-| **Pedagogical** | TEA, inclusión, pedagogía | Decisiones UX, child mode, accesibilidad neuro | `.github/agents/pedagogical.agent.md` |
-| **DevOps** | Vercel, CI/CD, secrets | Deployment, env vars, monitoreo | `.github/agents/devops.agent.md` |
+No pongas a tres agentes a resolver la misma tarea completa.
 
-## 📖 Flujo Típico
+## Tracks
 
-1. **Pedagógico** → Define la experiencia ("child mode: una instrucción por pantalla")
-2. **Backend** → Implementa datos (endpoint, schema)
-3. **Frontend** → Construye UI (componente, estilos)
-4. **DevOps** → Deploya (Vercel, env vars)
+- `frontend`: componentes, UI, paginas, accesibilidad visual.
+- `backend`: Supabase, queries, APIs, RLS, OpenAI server-side.
+- `pedagogical`: lenguaje claro, TEA, accesibilidad cognitiva, child mode.
+- `devops`: Vercel, build, env vars, secretos, CI.
 
-## 🔑 Stack
+## Backup
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind, Radix UI
-- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **APIs**: OpenAI (adaptaciones), Supabase Edge Functions (futuro)
-- **Deploy**: Vercel (auto-deploy on main)
-- **Linting**: ESLint, TypeScript
+- GitHub es la fuente principal del codigo.
+- Drive sirve para materiales humanos: capturas, demos, feedback, documentos y zips limpios ocasionales.
+- No subir `.env.local`, claves, tokens ni secretos a GitHub o Drive.
 
-## 🎨 AMIKO Brand
+## Checklist Rapido
 
-- **Colores**: Verde (#10b981), Azul (#3b82f6)
-- **Voz**: Cálida, inclusiva, simple, tranquilizadora
-- **Para niños**: Nunca condescendiente, nunca clínico
-- **Para adultos**: Confiable, ordenado, fácil de usar
-
-Revisar componentes en `components/` y `tailwind.config.ts` antes de crear nuevos.
-
-## 📝 Instrucciones Especiales
-
-Archivos `.instructions.md` se aplican automáticamente:
-- `.github/instructions/frontend.instructions.md` → todos `app/**/*.tsx, components/**/*.tsx`
-- `.github/instructions/backend.instructions.md` → todos `supabase/**/*.sql, app/api/**/*.ts`
-
-Contenido: patrones, checklists, ejemplos de código.
-
-## 🔗 Referencias
-
-- **AGENTS.md original**: [AGENTS.md](../AGENTS.md) (dirección de producto)
-- **README.md**: [README.md](../README.md) (MVP, stack, setup)
-- **Agentes**: [`.github/agents/`](.github/agents/)
-- **Instrucciones**: [`.github/instructions/`](.github/instructions/)
-
-## ✅ Checklist para Empezar
-
-- [ ] Workspace abierto: `C:\Users\Luis Simon\Documents\Amiko`
-- [ ] Copilot detecta los agentes (verifica que Copilot esté activo)
-- [ ] Prueba con `@frontend` en el chat
-- [ ] Lee `.github/AGENTS.md` para más detalles
-- [ ] Explora `supabase/schema.sql` (Backend)
-- [ ] Explora `components/` (Frontend)
-
-## 🆘 Troubleshooting
-
-**Copilot no detecta los agentes**
-- Asegúrate de que el workspace esté abierto
-- Los `.agent.md` están en `.github/agents/` ✓
-- Recarga Copilot: Cmd+Shift+P → "Developer: Reload Window"
-
-**No sé cuál agente usar**
-- ¿Es React/UI? → `@frontend`
-- ¿Es Supabase/API? → `@backend`
-- ¿Es UX para niños? → `@pedagogical`
-- ¿Es deploy/secrets? → `@devops`
-
-**Necesito ayuda con el harness**
-- Lee `.github/AGENTS.md` (guía central)
-- Cada `.agent.md` tiene ejemplos
-
----
-
-**Harness v1.0** | 2026-06-05 | GitHub Copilot (Haiku 4.5)
-
-*No gasta créditos de Claude. Está integrado con tu suscripción de Copilot.*
+- Abrir workspace: `C:\Users\Luis Simon\Documents\Amiko`
+- Leer `AGENTS.md`
+- Leer `.agent-harness/README.md`
+- Elegir un track
+- Usar `task-template.md`
+- Cerrar con `handoff-template.md`

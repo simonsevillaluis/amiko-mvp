@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
+import { CHAT_HOME_PATH, withChatFrom } from "@/lib/chat-navigation";
 
 const faqs = [
   {
@@ -84,7 +85,7 @@ export default function FAQPage() {
 
       {/* CTA Preguntar a Amiko */}
       <Link
-        href="/adapt-task/chat"
+        href={withChatFrom(CHAT_HOME_PATH, "/faq")}
         className="focus-ring mt-6 flex items-center gap-4 rounded-2xl border-2 border-amiko-green bg-gradient-to-r from-amiko-mint/60 to-white p-4 shadow-card transition hover:-translate-y-0.5"
       >
         <Image

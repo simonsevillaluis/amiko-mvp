@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
-import { student } from "@/lib/mock-data";
+import { CHAT_HOME_PATH } from "@/lib/chat-navigation";
 
 type ModeKey = "tareas" | "calma" | "registro" | "mensajes";
 
@@ -23,7 +23,7 @@ const modePanels: Record<ModeKey, {
   tareas: {
     eyebrow: "Aclara la tarea",
     title: "Dime qué parte se trabó",
-    description: `Sube una foto, pega la consigna o cuéntame qué necesita ${student.name}.`,
+    description: `Sube una foto, pega la consigna o cuéntame qué necesita tu estudiante.`,
     chips: ["No sabe empezar", "La consigna es larga", "Necesita pasos cortos", "Mejor con apoyo visual"],
     placeholder: "Ej: La tarea pide resolver varias instrucciones y no sabe cuál hacer primero.",
     helper: "Amiko preparará un primer paso claro, apoyos visuales y una forma sencilla de acompañar.",
@@ -32,7 +32,7 @@ const modePanels: Record<ModeKey, {
   calma: {
     eyebrow: "Calma para acompañar",
     title: "Primero cuidamos el tono",
-    description: `Pensado para ti, como adulto: Amiko te ayuda a sostener la calma y retomar con ${student.name}.`,
+    description: `Pensado para ti, como adulto: Amiko te ayuda a sostener la calma y retomar con tu estudiante.`,
     chips: ["Se frustró", "Me estoy saturando", "Necesitamos pausa", "Volver a intentar"],
     placeholder: "Ej: Me cuesta saber qué decir cuando se bloquea con la tarea.",
     helper: "Amiko sugerirá una respuesta breve, una pausa posible y una forma tranquila de volver a la actividad.",
@@ -77,6 +77,7 @@ export default function AmikoIAPage() {
   const activeChips = selectedChoices[selectedMode];
 
   const conversationParams = new URLSearchParams({ mode: selectedMode, need: activeChips.join(",") });
+  conversationParams.set("from", CHAT_HOME_PATH);
   if (contextNote.trim()) conversationParams.set("note", contextNote.trim());
   if (attachmentChoice) conversationParams.set("attachment", attachmentChoice);
   const conversationHref = `/adapt-task/chat/conversation?${conversationParams.toString()}`;
@@ -112,7 +113,7 @@ export default function AmikoIAPage() {
           </p>
           <h1 className="mt-2 text-3xl font-black leading-tight text-amiko-ink">Amiko IA</h1>
           <p className="mt-2 text-base font-bold leading-7 text-amiko-muted">
-            Elige qué necesitas ahora. Amiko usará el perfil de {student.name} para ayudarte con más claridad.
+            Elige qué necesitas ahora. Amiko usará el perfil de tu estudiante para ayudarte con más claridad.
           </p>
         </section>
 

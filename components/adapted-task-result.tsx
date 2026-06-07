@@ -1,7 +1,29 @@
+import { type AdaptationResult } from "@/lib/adapt-task";
 import { adaptedTask } from "@/lib/mock-data";
 import { ButtonLink, Card, StatusPill } from "./ui";
 
-export function AdaptedTaskResult() {
+function toAdaptationResult(mock: typeof adaptedTask): AdaptationResult {
+  return {
+    originalText: mock.originalText,
+    simple_summary: mock.simpleSummary,
+    steps: mock.steps.map((s) => ({
+      number: s.number,
+      instruction: s.instruction,
+      visual_support: s.visualSupport,
+      adult_support: s.adultSupport,
+    })),
+    emotional_support: mock.emotionalSupport,
+    difficulty_level: mock.difficultyLevel,
+  };
+}
+
+interface Props {
+  adaptation?: AdaptationResult;
+}
+
+export function AdaptedTaskResult({ adaptation }: Props) {
+  const data = adaptation ?? toAdaptationResult(adaptedTask);
+
   return (
     <div className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
       <Card className="bg-white/95">
@@ -10,21 +32,20 @@ export function AdaptedTaskResult() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-green">
               Amiko responde
             </p>
-            <h2 className="mt-2 text-3xl font-black text-amiko-ink">{adaptedTask.title}</h2>
-            <p className="mt-1 font-bold text-amiko-muted">{adaptedTask.subject}</p>
+            <h2 className="mt-2 text-3xl font-black text-amiko-ink">Tarea adaptada</h2>
           </div>
-          <StatusPill>Dificultad {adaptedTask.difficultyLevel}</StatusPill>
+          <StatusPill>Dificultad {data.difficulty_level}</StatusPill>
         </div>
 
         <div className="mt-6 rounded-xl bg-amiko-sky p-5">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-navy">
             Resumen simple
           </p>
-          <p className="mt-3 text-xl font-black leading-8 text-amiko-ink">{adaptedTask.simpleSummary}</p>
+          <p className="mt-3 text-xl font-black leading-8 text-amiko-ink">{data.simple_summary}</p>
         </div>
 
         <div className="mt-6 space-y-3">
-          {adaptedTask.steps.map((step) => (
+          {data.steps.map((step) => (
             <article key={step.number} className="rounded-xl border border-blue-100 bg-white p-4">
               <div className="flex gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amiko-blue text-xl font-black text-white">
@@ -34,10 +55,10 @@ export function AdaptedTaskResult() {
                   <h3 className="text-lg font-black leading-7 text-amiko-ink">{step.instruction}</h3>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <p className="rounded-lg bg-amiko-mint px-3 py-2 text-sm font-bold text-green-900">
-                      Apoyo visual: {step.visualSupport}
+                      Apoyo visual: {step.visual_support}
                     </p>
                     <p className="rounded-lg bg-amiko-cream px-3 py-2 text-sm font-bold text-amiko-ink">
-                      Para acompañar: {step.adultSupport}
+                      Para acompañar: {step.adult_support}
                     </p>
                   </div>
                 </div>
@@ -53,7 +74,7 @@ export function AdaptedTaskResult() {
             Apoyo para el adulto
           </p>
           <h2 className="mt-2 text-2xl font-black">Pausa y acompaña</h2>
-          <p className="mt-3 leading-7 text-green-50">{adaptedTask.emotionalSupport}</p>
+          <p className="mt-3 leading-7 text-green-50">{data.emotional_support}</p>
         </Card>
         <Card>
           <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-blue">

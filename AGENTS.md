@@ -414,3 +414,27 @@ Después de completar esta primera etapa, se definirán criterios de aceptación
 La prioridad actual es validar una experiencia clara, humana y útil para padres, madres y cuidadores: una persona adulta organiza la información del estudiante, ingresa una tarea escolar, AMIKO la transforma en pasos simples con apoyos visuales y ofrece una guía práctica para acompañarlo.
 
 Cada decisión técnica o de diseño debe proteger primero ese flujo para adultos, mantener la imagen y voz de marca existente y evitar introducir gestión de pensum educativo.
+
+## Auditoría De Formularios Y Usabilidad
+
+Antes de considerar listo un formulario nuevo o modificado, revisar estos puntos sin esperar a que el usuario los pida:
+
+- Validar campos requeridos antes de enviar.
+- Marcar visualmente el campo y su label cuando el dato no es válido.
+- Mantener los mensajes de error cerca del campo que los causa cuando el error es específico.
+- Evitar mensajes innecesarios si el estado visual basta, por ejemplo caracteres no permitidos en un nombre.
+- Permitir nombres reales en español y otros idiomas: letras, acentos, espacios, guion, punto y apóstrofe.
+- Bloquear caracteres claramente accidentales en nombres, como `@`, números y símbolos no propios de nombres.
+- Verificar contraseñas cuando se crean cuentas y mostrar error si no coinciden.
+- Hacer que los iconos interactivos sean botones reales, con estados visibles, `aria-label` y feedback claro.
+- No usar enlaces que parezcan acción pero no hagan nada, por ejemplo recuperación de contraseña apuntando a la misma pantalla.
+- Reducir opciones redundantes en pantallas de alta concentración como registro; dejar una salida clara con flecha o enlace de regreso.
+- Probar manualmente estados de error, campos vacíos, datos inválidos, mostrar/ocultar contraseña y navegación de regreso.
+
+## Reglas de Pruebas Automáticas y Rate Limit en Supabase
+
+Para evitar el bloqueo de la dirección IP por exceso de peticiones (Rate Limit / Error 429) en el entorno de Supabase Auth durante el desarrollo local, los agentes de IA **tienen estrictamente prohibido realizar flujos de registro (Sign-Up) o de inicio de sesión (Sign-In) de forma automatizada** mediante el navegador subagent contra la base de datos real.
+
+* Las pruebas de interfaz en navegador (browser subagent) deben limitarse a inspeccionar la estructura visual de las páginas públicas o estados sin sesión.
+* Cualquier validación de registro o inicio de sesión en local con cuentas reales debe ser ejecutada manualmente por el desarrollador humano desde su propio navegador, para no saturar los límites de la API de Supabase en el plan gratuito.
+

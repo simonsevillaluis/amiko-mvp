@@ -1,0 +1,4 @@
+interface:
+  display_name: "AMIKO Task Router"
+  short_description: "Route AMIKO tasks to the right agent and AI model."
+  default_prompt: "Use this skill to decide where an AMIKO task belongs, which agent should handle it, which AI/model/intensity to use, and whether to produce a paste-ready prompt or do the work here."

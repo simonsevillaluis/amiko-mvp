@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
-import { student } from "@/lib/mock-data";
+import { getFirstStudent } from "@/lib/supabase/students";
 
 const members = [
   { name: "Luis", role: "Cuidador principal", initials: "L", permissions: "5 permisos" },
@@ -9,7 +9,10 @@ const members = [
   { name: "Carmen", role: "Familiar", initials: "C", permissions: "2 permisos" },
 ];
 
-export default function ComunidadPage() {
+export default async function ComunidadPage() {
+  const firstStudent = await getFirstStudent();
+  const studentName = firstStudent?.name ?? "tu estudiante";
+
   return (
     <AppShell>
       <section className="mb-6">
@@ -18,7 +21,7 @@ export default function ComunidadPage() {
         </p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-amiko-ink">Comunidad</h1>
         <p className="mt-2 text-base font-bold leading-7 text-amiko-muted">
-          Personas de confianza que acompañan a {student.name}.
+          Personas de confianza que acompañan a {studentName}.
         </p>
       </section>
 
@@ -26,7 +29,7 @@ export default function ComunidadPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-green-100">Red de apoyo</p>
-            <h2 className="mt-2 text-2xl font-black">Red de {student.name}</h2>
+            <h2 className="mt-2 text-2xl font-black">Red de {studentName}</h2>
             <p className="mt-2 text-sm font-bold leading-6 text-green-50">
               Comparte solo la información necesaria con quienes ayudan a acompañar su aprendizaje.
             </p>

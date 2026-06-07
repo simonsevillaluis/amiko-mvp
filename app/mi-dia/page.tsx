@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
-import { student } from "@/lib/mock-data";
 
 // Groups 0 and 1 are single-select (one emotional/difficulty state at a time).
 // Group 2 is multi-select (multiple supports can be used simultaneously).
 const groups = [
   {
     title: "Antes de empezar",
-    hint: "¿Cómo estaba Ángel al iniciar?",
+    hint: "¿Cómo estaba al iniciar?",
     multi: false,
     options: ["Tranquilo", "Cansado", "Frustrado", "Motivado", "No quiso empezar"],
   },
@@ -79,7 +78,7 @@ export default function TaskLogPage() {
           Registro de tarea
         </h2>
         <p className="mt-2 text-sm font-bold leading-6 text-amiko-muted">
-          Guarda lo que pasó hoy para entender mejor qué ayuda a {student.name}.
+          Guarda lo que pasó hoy para entender mejor qué ayuda a tu estudiante.
         </p>
       </section>
 
@@ -94,7 +93,7 @@ export default function TaskLogPage() {
           </span>
           <h3 className="mt-4 text-xl font-black text-amiko-ink">Registro guardado</h3>
           <p className="mt-2 text-sm font-bold leading-6 text-amiko-muted">
-            Gracias por registrar. Esto ayuda a entender los patrones de {student.name}.
+            Gracias por registrar. Esto ayuda a entender los patrones de tu estudiante.
           </p>
           <button
             type="button"

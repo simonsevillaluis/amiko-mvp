@@ -4,6 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AmikoIcon } from "@/components/amiko-icon";
+import { createStudent } from "@/app/actions/create-student";
+
+type EducationLevel = "inicial" | "primaria" | "secundaria";
+
+const gradeOptions: Record<EducationLevel, string[]> = {
+  inicial: ["Maternal", "Preescolar 1", "Preescolar 2", "Preescolar 3"],
+  primaria: ["1er grado", "2do grado", "3er grado", "4to grado", "5to grado", "6to grado"],
+  secundaria: ["1er año", "2do año", "3er año", "4to año", "5to año"],
+};
 
 function Field({
   label,
@@ -15,7 +25,7 @@ function Field({
 }: {
   label: string;
   type?: string;
-  placeholder: string;
+  placeholder?: string;
   value: string;
   onChange: (value: string) => void;
   optional?: boolean;
@@ -31,7 +41,7 @@ function Field({
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="focus-ring w-full rounded-md border border-amiko-blue bg-white px-4 py-3 text-base font-medium text-amiko-muted outline-none placeholder:text-slate-400"
+        className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none placeholder:text-slate-400"
       />
     </label>
   );
@@ -40,33 +50,123 @@ function Field({
 export default function StudentOnboardingPage() {
   const router = useRouter();
   const [studentName, setStudentName] = useState("");
-  const [studentEmail, setStudentEmail] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [age, setAge] = useState("");
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | "">("");
+  const [gradeYear, setGradeYear] = useState("");
+  const [supportLevel, setSupportLevel] = useState("medio");
+  const [visualPreferences, setVisualPreferences] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  function handleSubmit() {
-    if (!studentName.trim() || !birthDate.trim()) {
-      setError("Agrega el nombre y la fecha de nacimiento para crear el perfil.");
+  async function handleSubmit() {
+    const parsedAge = Number(age);
+    const nameRegex = /^[\p{L}\s''.\-]{2,}$/u;
+
+    if (!studentName.trim() || !age.trim() || !educationLevel || !gradeYear) {
+      setError("Agrega nombre, edad y grado escolar para crear el perfil.");
+      return;
+    }
+
+    if (!nameRegex.test(studentName.trim())) {
+      setError("El nombre solo puede tener letras, espacios y guiones. Sin números ni símbolos.");
+      return;
+    }
+
+    if (!Number.isInteger(parsedAge) || parsedAge < 1 || parsedAge > 21) {
+      setError("Ingresa una edad válida para el perfil del estudiante.");
       return;
     }
 
     setError("");
-    router.push("/dashboard");
+    setSaving(true);
+
+    try {
+      const result = await createStudent(
+        studentName,
+        age,
+        educationLevel,
+        gradeYear,
+        supportLevel,
+        visualPreferences,
+      );
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      setIsSuccess(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-white px-6 py-10">
+        <section className="w-full max-w-[390px] text-center">
+          <div className="mb-6 flex justify-center">
+            <Image
+              src="/amiko-character/amiko-character-photo.svg"
+              alt="Mascota de AMIKO saludando"
+              width={160}
+              height={160}
+              className="object-contain hover:scale-105 transition-transform duration-300"
+              priority
+            />
+          </div>
+
+          <h1 className="text-3xl font-black leading-tight text-amiko-navy">
+            ¡Todo listo! 🌟
+          </h1>
+          <p className="mt-4 text-base font-bold leading-6 text-amiko-muted">
+            ¡Te damos la bienvenida a la familia AMIKO! Estamos muy felices de acompañarte a ti y a <span className="text-amiko-blue font-black">{studentName.trim()}</span> en sus tareas escolares.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              router.refresh();
+              router.push("/dashboard");
+            }}
+            className="focus-ring mt-8 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-green px-6 text-lg font-black text-white shadow-card transition hover:opacity-90"
+          >
+            Comenzar
+          </button>
+        </section>
+      </main>
+    );
   }
 
   return (
     <main className="flex min-h-screen items-start justify-center bg-white px-6 py-10 sm:items-center">
       <section className="w-full max-w-[390px]">
-        <Link href="/register" className="text-sm font-black text-amiko-navy">
-          Atrás
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/dashboard"
+            aria-label="Volver"
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full text-amiko-navy transition hover:bg-amiko-sky"
+          >
+            <AmikoIcon name="back" className="h-6 w-6" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              router.push("/dashboard");
+            }}
+            className="focus-ring rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-black text-amiko-muted transition hover:border-amiko-green hover:bg-amiko-mint hover:text-green-800"
+          >
+            Saltar por ahora
+          </button>
+        </div>
 
-        <div className="mb-5 mt-5 flex justify-center">
+        <div className="mb-4 mt-5 flex justify-center">
           <Image
-            src="/amiko-character/amiko-character-photo.svg"
-            alt="Mascota de AMIKO saludando"
-            width={104}
-            height={104}
+            src="/amiko-character/amiko-icon.svg"
+            alt="AMIKO"
+            width={72}
+            height={72}
             className="object-contain"
             priority
           />
@@ -79,36 +179,90 @@ export default function StudentOnboardingPage() {
           Creemos un perfil simple para adaptar tareas con más cuidado.
         </p>
 
-        <div className="mt-6 rounded-3xl border border-amiko-blue/15 bg-amiko-sky px-4 py-4">
-          <p className="text-sm font-black text-amiko-navy">Paso 2 de 2</p>
-          <p className="mt-1 text-sm font-bold leading-6 text-amiko-muted">
-            No pedimos diagnóstico. Estos datos solo ayudan a organizar el apoyo
-            pedagógico de la demo.
-          </p>
-        </div>
 
         <div className="mt-5 space-y-4">
           <Field
-            label="Nombre del estudiante"
-            placeholder="Ejemplo: Ángel"
+            label="Nombre o apodo del estudiante"
             value={studentName}
             onChange={setStudentName}
           />
-          <Field
-            label="Correo de la persona que recibe apoyo"
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={studentEmail}
-            onChange={setStudentEmail}
-            optional
-          />
-          <Field
-            label="Fecha de nacimiento"
-            type="date"
-            placeholder="Fecha de nacimiento"
-            value={birthDate}
-            onChange={setBirthDate}
-          />
+          <Field label="Edad" type="number" value={age} onChange={setAge} />
+
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-black text-amiko-ink">Grado escolar</legend>
+            <label className="block">
+              <span className="mb-2 block text-xs font-black text-amiko-muted">Nivel educativo</span>
+              <select
+                value={educationLevel}
+                onChange={(event) => {
+                  setEducationLevel(event.target.value as EducationLevel | "");
+                  setGradeYear("");
+                }}
+                className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none"
+              >
+                <option value="">Selecciona un nivel</option>
+                <option value="inicial">Educación inicial</option>
+                <option value="primaria">Primaria</option>
+                <option value="secundaria">Secundaria</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs font-black text-amiko-muted">Grado o año</span>
+              <select
+                value={gradeYear}
+                onChange={(event) => setGradeYear(event.target.value)}
+                disabled={!educationLevel}
+                className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+              >
+                <option value="">
+                  {educationLevel ? "Selecciona grado o año" : "Primero elige un nivel"}
+                </option>
+                {educationLevel
+                  ? gradeOptions[educationLevel].map((grade) => (
+                      <option key={grade} value={grade}>
+                        {grade}
+                      </option>
+                    ))
+                  : null}
+              </select>
+            </label>
+          </fieldset>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-black text-amiko-ink">
+              Tipo de apoyo que suele necesitar
+            </span>
+            <select
+              value={supportLevel}
+              onChange={(event) => setSupportLevel(event.target.value)}
+              className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none"
+            >
+              <option value="bajo">Apoyo ocasional</option>
+              <option value="medio">Apoyo frecuente</option>
+              <option value="alto">Acompañamiento constante</option>
+              <option value="no_seguro">No lo sé todavía</option>
+            </select>
+            <p className="mt-2 text-xs font-bold leading-5 text-amiko-muted">
+              Puedes ajustarlo más adelante. No necesitamos información clínica para empezar.
+            </p>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 flex items-center justify-between text-sm font-black text-amiko-ink">
+              <span>¿Qué le ayuda a aprender mejor?</span>
+              <span className="text-xs text-amiko-muted">Opcional</span>
+            </span>
+            <p className="mb-2 text-xs font-bold leading-5 text-amiko-muted">
+              Amiko usa esto para adaptar las tareas a su estilo. Por ejemplo: si le cuesta leer mucho texto, si prefiere listas cortas, si los colores suaves le ayudan a concentrarse, o si necesita pasos muy pequeños.
+            </p>
+            <input
+              type="text"
+              placeholder="Ej: pasos cortos, poco texto, colores suaves"
+              value={visualPreferences}
+              onChange={(event) => setVisualPreferences(event.target.value)}
+              className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none placeholder:text-slate-400"
+            />
+          </label>
         </div>
 
         {error ? (
@@ -117,20 +271,13 @@ export default function StudentOnboardingPage() {
           </p>
         ) : null}
 
-        <div className="mt-5 rounded-2xl border border-amiko-green/30 bg-amiko-mint px-4 py-3">
-          <p className="text-sm font-black text-green-900">Permisos e invitaciones</p>
-          <p className="mt-1 text-sm font-bold leading-6 text-green-900/75">
-            Después podrás invitar cuidadores y decidir qué pueden ver desde
-            Círculo de cuidado.
-          </p>
-        </div>
-
         <button
           type="button"
           onClick={handleSubmit}
-          className="focus-ring mt-5 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue px-6 text-lg font-black text-white shadow-card transition hover:bg-amiko-navy"
+          disabled={saving}
+          className="focus-ring mt-5 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue px-6 text-lg font-black text-white shadow-card transition hover:bg-amiko-navy disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Crear perfil
+          {saving ? "Guardando..." : "Crear perfil"}
         </button>
       </section>
     </main>

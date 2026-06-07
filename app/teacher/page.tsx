@@ -1,8 +1,11 @@
 import { AppShell } from "@/components/app-shell";
 import { Card, PageHeader, StatusPill } from "@/components/ui";
-import { adaptedTask, student } from "@/lib/mock-data";
+import { adaptedTask } from "@/lib/mock-data";
+import { getFirstStudent } from "@/lib/supabase/students";
 
-export default function TeacherPage() {
+export default async function TeacherPage() {
+  const firstStudent = await getFirstStudent();
+
   return (
     <AppShell>
       <PageHeader
@@ -19,12 +22,14 @@ export default function TeacherPage() {
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-navy">
                   Estudiante
                 </p>
-                <h2 className="mt-2 text-3xl font-black text-amiko-ink">{student.name}</h2>
+                <h2 className="mt-2 text-3xl font-black text-amiko-ink">
+                  {firstStudent?.name ?? "—"}
+                </h2>
                 <p className="mt-2 font-bold text-amiko-muted">
-                  {student.age} años · {student.grade}
+                  {firstStudent ? `${firstStudent.age} años · ${firstStudent.school_grade}` : "—"}
                 </p>
               </div>
-              <StatusPill>Apoyo {student.supportLevel}</StatusPill>
+              <StatusPill>Apoyo {firstStudent?.support_level ?? "—"}</StatusPill>
             </div>
           </Card>
           <Card>

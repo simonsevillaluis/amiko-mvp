@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { CHAT_HOME_PATH, withChatFrom } from "@/lib/chat-navigation";
 
 const navItems: Array<{ href: string; label: string; icon: AmikoIconName }> = [
   { href: "/dashboard", label: "Inicio", icon: "home" },
-  { href: "/adapt-task/chat", label: "Amiko IA", icon: "chat" },
+  { href: CHAT_HOME_PATH, label: "Amiko IA", icon: "chat" },
   { href: "/acompanamiento", label: "Recursos", icon: "heart" },
   { href: "/comunidad", label: "Comunidad", icon: "users" },
 ];
@@ -32,12 +33,12 @@ function isNavItemActive(pathname: string, href: string) {
     return pathname === "/dashboard";
   }
 
-  if (href === "/adapt-task/chat") {
-    return pathname.startsWith("/adapt-task/chat");
+  if (href === CHAT_HOME_PATH) {
+    return pathname.startsWith(CHAT_HOME_PATH);
   }
 
   if (href === "/acompanamiento") {
-    if (pathname.startsWith("/adapt-task/chat")) {
+    if (pathname.startsWith(CHAT_HOME_PATH)) {
       return false;
     }
 
@@ -103,11 +104,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto grid max-w-[430px] grid-cols-4 lg:max-w-3xl">
           {navItems.map((item) => {
             const active = isNavItemActive(pathname, item.href);
+            const href = item.href === CHAT_HOME_PATH
+              ? withChatFrom(CHAT_HOME_PATH, pathname)
+              : item.href;
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href}
                 className="focus-ring flex min-w-0 flex-col items-center gap-0.5 rounded-lg py-2"
               >
                 <span

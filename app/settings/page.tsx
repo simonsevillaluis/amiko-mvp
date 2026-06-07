@@ -1,193 +1,184 @@
 import Link from "next/link";
-import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { redirect } from "next/navigation";
+import { AmikoIcon } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
-import { student } from "@/lib/mock-data";
+import {
+  SettingsCard,
+  SettingsDivider,
+  SettingsRow,
+  SettingsSection,
+  TrustNote,
+  type SettingsRowProps,
+} from "@/components/settings-ui";
+import { createClient } from "@/lib/supabase/server";
+import { getOrSyncProfile } from "@/lib/supabase/profile";
+import { getFirstStudent } from "@/lib/supabase/students";
 
-type SettingRow = {
-  title: string;
-  description?: string;
-  href: string;
-  icon: AmikoIconName;
-  iconTone?: string;
-  badge?: string;
-  value?: string;
-};
-
-const planRows: SettingRow[] = [
-  {
-    title: "Plan actual",
-    description: "Amiko Gratuito",
-    href: "#",
-    icon: "sparkles",
-    iconTone: "bg-amiko-sky text-amiko-blue",
-    value: "Gratis",
-  },
-  {
-    title: "Amiko Premium",
-    description: "Más funciones, sin límites de sesión",
-    href: "#",
-    icon: "award",
-    iconTone: "bg-amiko-cream text-amiko-navy",
-    badge: "Próximamente",
-  },
-];
-
-const prefRows: SettingRow[] = [
+const preferenceRows: SettingsRowProps[] = [
   {
     title: "Idioma / Language",
-    href: "#",
+    description: "Español como idioma principal del MVP",
+    href: "/settings/language",
     icon: "resources",
     iconTone: "bg-amiko-sky text-amiko-blue",
     value: "ES",
   },
   {
-    title: "Apariencia",
-    description: "Modo claro / oscuro",
-    href: "#",
-    icon: "calm",
+    title: "Accesibilidad",
+    description: "Texto, contraste y movimiento para leer con más calma",
+    href: "/settings/accessibility",
+    icon: "help",
     iconTone: "bg-amiko-mint text-green-800",
   },
   {
-    title: "Accesibilidad",
-    description: "Tamaño de texto, contraste, guía de voz",
-    href: "#",
-    icon: "help",
-    iconTone: "bg-amiko-sky text-amiko-blue",
+    title: "Apariencia",
+    description: "Modo oscuro y temas visuales llegarán después",
+    icon: "calm",
+    iconTone: "bg-slate-100 text-amiko-muted",
+    badge: "Próximamente",
+    disabled: true,
   },
 ];
 
-const privacyRows: SettingRow[] = [
+const amikoRows: SettingsRowProps[] = [
+  {
+    title: "Contexto que Amiko puede usar",
+    description: "Perfil pedagógico, tarea compartida y registros recientes",
+    href: "/adapt-task/chat/conversation?from=%2Fsettings",
+    icon: "shield",
+    iconTone: "bg-amiko-sky text-amiko-blue",
+  },
+  {
+    title: "Análisis de fotos con IA",
+    description: "No disponible en este MVP",
+    icon: "camera",
+    iconTone: "bg-slate-100 text-amiko-muted",
+    badge: "Próximamente",
+    disabled: true,
+  },
+];
+
+const privacyRows: SettingsRowProps[] = [
   {
     title: "Privacidad y datos",
-    description: "Controla qué guarda y comparte Amiko",
-    href: "#",
+    description: "Qué guarda AMIKO, para qué lo usa y qué no pide",
+    href: "/settings/privacy",
     icon: "shield",
     iconTone: "bg-amiko-navy text-white",
   },
   {
     title: "Permisos de cámara y archivos",
-    description: "Revisa qué tiene acceso Amiko en este dispositivo",
-    href: "#",
+    description: "AMIKO solo accede cuando tú eliges una foto o archivo",
+    href: "/settings/permissions",
     icon: "camera",
     iconTone: "bg-slate-100 text-amiko-navy",
   },
 ];
 
-const supportRows: SettingRow[] = [
+const supportRows: SettingsRowProps[] = [
   {
     title: "Preguntas frecuentes",
-    description: "Cómo funciona Amiko y respuestas rápidas",
+    description: "Respuestas rápidas sobre AMIKO",
     href: "/faq",
     icon: "help",
     iconTone: "bg-amiko-mint text-green-800",
   },
   {
     title: "Centro de ayuda",
-    description: "Guías y contacto de soporte",
-    href: "#",
+    description: "Guías breves y qué hacer si algo sale mal",
+    href: "/settings/help",
     icon: "resources",
     iconTone: "bg-amiko-sky text-amiko-blue",
   },
+  {
+    title: "Contactar soporte",
+    description: "Canal de soporte real pendiente de definir",
+    icon: "mail",
+    iconTone: "bg-slate-100 text-amiko-muted",
+    badge: "Próximamente",
+    disabled: true,
+  },
 ];
 
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-amiko-muted">
-      {label}
-    </p>
-  );
+function renderRows(rows: SettingsRowProps[]) {
+  return rows.map((row, index) => (
+    <div key={row.title}>
+      <SettingsRow {...row} />
+      {index < rows.length - 1 ? <SettingsDivider /> : null}
+    </div>
+  ));
 }
 
-function SettingCard({ rows }: { rows: SettingRow[] }) {
+function roleLabel(role: string | null | undefined) {
+  if (role === "parent") return "Padre / Madre";
+  if (role === "caregiver") return "Cuidador principal";
+  if (role === "professional") return "Profesional";
+  return "Adulto acompañante";
+}
+
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const [profile, firstStudent] = await Promise.all([
+    getOrSyncProfile(user.id),
+    getFirstStudent(),
+  ]);
+
+  const adultName = profile?.full_name?.split(" ")[0] ?? "Adulto";
+  const adultInitial = adultName.slice(0, 1).toUpperCase();
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-card">
-      {rows.map((row, i) => (
+    <DetailShell title="Ajustes" backHref="/dashboard" fallbackHref="/dashboard">
+      <TrustNote title="Centro de confianza" icon="shield">
+        Revisa cómo AMIKO usa la información, ajusta preferencias sencillas y encuentra ayuda sin activar funciones que aún no existen.
+      </TrustNote>
+
+      <SettingsSection label="Perfil">
         <Link
-          key={row.title}
-          href={row.href}
-          className={`focus-ring flex items-center gap-3 px-4 py-3.5 transition hover:bg-slate-50 ${
-            i < rows.length - 1 ? "border-b border-slate-100" : ""
-          }`}
+          href="/students"
+          className="focus-ring flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-card transition hover:shadow-soft"
         >
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${row.iconTone ?? "bg-amiko-sky text-amiko-blue"}`}>
-            <AmikoIcon name={row.icon} className="h-5 w-5" />
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amiko-green to-green-700 text-xl font-black text-white shadow-sm">
+            {adultInitial}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-2">
-              <span className="block text-sm font-black text-amiko-ink">{row.title}</span>
-              {row.badge ? (
-                <span className="rounded-full border border-amiko-green/40 px-2 py-0.5 text-[10px] font-black text-amiko-green">
-                  {row.badge}
-                </span>
-              ) : null}
+            <span className="block font-black text-amiko-ink">{profile?.full_name ?? adultName}</span>
+            <span className="mt-0.5 block text-sm font-bold text-amiko-muted">{roleLabel(profile?.role)}</span>
+            <span className="mt-1 block text-xs font-black text-amiko-blue">
+              {firstStudent ? `Acompañando a ${firstStudent.name}` : "Crear o revisar perfil del estudiante"}
             </span>
-            {row.description ? (
-              <span className="mt-0.5 block text-xs font-bold leading-4 text-amiko-muted">
-                {row.description}
-              </span>
-            ) : null}
           </span>
-          {row.value ? (
-            <span className="shrink-0 text-sm font-black text-amiko-muted">{row.value}</span>
-          ) : null}
-          <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-slate-300" />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amiko-sky text-amiko-blue">
+            <AmikoIcon name="users" className="h-5 w-5" />
+          </span>
         </Link>
-      ))}
-    </div>
-  );
-}
+      </SettingsSection>
 
-export default function SettingsPage() {
-  return (
-    <DetailShell title="Ajustes">
-      {/* Profile card */}
-      <Link
-        href="/students"
-        className="focus-ring mb-6 flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-card transition hover:shadow-soft"
-      >
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amiko-green to-green-700 text-xl font-black text-white shadow-sm">
-          L
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-black text-amiko-ink">Luis</span>
-          <span className="mt-0.5 block text-sm font-bold text-amiko-muted">Cuidador principal</span>
-          <span className="mt-1 block text-xs font-black text-amiko-blue">Editar perfil →</span>
-        </span>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amiko-sky text-amiko-blue">
-          <AmikoIcon name="users" className="h-5 w-5" />
-        </span>
-      </Link>
+      <SettingsSection label="Preferencias">
+        <SettingsCard>{renderRows(preferenceRows)}</SettingsCard>
+      </SettingsSection>
 
-      {/* Plan */}
-      <div className="mb-5">
-        <SectionLabel label="Plan" />
-        <SettingCard rows={planRows} />
-      </div>
+      <SettingsSection label="Amiko IA">
+        <SettingsCard>{renderRows(amikoRows)}</SettingsCard>
+      </SettingsSection>
 
-      {/* Preferencias */}
-      <div className="mb-5">
-        <SectionLabel label="Preferencias" />
-        <SettingCard rows={prefRows} />
-      </div>
+      <SettingsSection label="Privacidad y permisos">
+        <SettingsCard>{renderRows(privacyRows)}</SettingsCard>
+      </SettingsSection>
 
-      {/* Privacidad */}
-      <div className="mb-5">
-        <SectionLabel label="Privacidad y permisos" />
-        <SettingCard rows={privacyRows} />
-      </div>
+      <SettingsSection label="Soporte">
+        <SettingsCard>{renderRows(supportRows)}</SettingsCard>
+      </SettingsSection>
 
-      {/* Soporte */}
-      <div className="mb-5">
-        <SectionLabel label="Soporte" />
-        <SettingCard rows={supportRows} />
-      </div>
-
-      {/* Cuenta */}
-      <div className="mb-6">
-        <SectionLabel label="Cuenta" />
+      <SettingsSection label="Cuenta">
         <div className="overflow-hidden rounded-2xl border border-red-100 bg-white shadow-card">
           <Link
-            href="/login"
+            href="/auth/signout"
             className="focus-ring flex items-center gap-3 px-4 py-3.5 transition hover:bg-red-50"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
@@ -199,13 +190,14 @@ export default function SettingsPage() {
             <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-red-200" />
           </Link>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* Footer disclaimer */}
       <p className="rounded-2xl bg-amiko-sky px-4 py-3 text-xs font-bold leading-5 text-amiko-navy">
-        Amiko es apoyo pedagógico. No diagnostica ni reemplaza a docentes, terapeutas o profesionales de salud.
+        AMIKO es apoyo pedagógico. No diagnostica ni reemplaza a docentes, terapeutas o profesionales de salud.
         <br />
-        <span className="mt-1 block text-amiko-muted">v0.1.0 MVP Demo · {student.name} activo</span>
+        <span className="mt-1 block text-amiko-muted">
+          v0.1.0 MVP Demo{firstStudent ? ` · ${firstStudent.name} activo` : ""}
+        </span>
       </p>
     </DetailShell>
   );

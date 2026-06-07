@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
-import { student } from "@/lib/mock-data";
+import { CHAT_CONVERSATION_PATH, withChatFrom } from "@/lib/chat-navigation";
 
 const wellnessSections: Array<{
   title: string;
@@ -45,7 +45,7 @@ const wellnessSections: Array<{
       },
       {
         title: "Frase de regreso",
-        description: `Prepara una frase corta para acompañar a ${student.name} sin presionar.`,
+        description: "Prepara una frase corta para acompañar al estudiante sin presionar.",
         duration: "2 min",
         icon: "sparkles",
         tone: "bg-blue-50 text-amiko-blue",
@@ -60,6 +60,11 @@ const quickNeeds = [
   "No sé qué decir",
   "La tarea se puso difícil",
 ];
+
+function getWellnessChatHref(need: string) {
+  const params = new URLSearchParams({ mode: "calma", need });
+  return withChatFrom(`${CHAT_CONVERSATION_PATH}?${params.toString()}`, "/bienestar");
+}
 
 export default function BienestarPage() {
   return (
@@ -106,7 +111,7 @@ export default function BienestarPage() {
           {quickNeeds.map((need, index) => (
             <Link
               key={need}
-              href={`/adapt-task/chat/conversation?mode=calma&need=${encodeURIComponent(need)}`}
+              href={getWellnessChatHref(need)}
               className={`focus-ring rounded-full border px-4 py-2 text-sm font-black transition ${
                 index === 0
                   ? "border-amiko-green bg-amiko-green text-white shadow-sm"

@@ -69,7 +69,7 @@ Ejemplos:
    ```
    @frontend: Basado en los pasos anteriores, crea:
    - ComponenteTaskStep (muestra 1 instrucción)
-   - Botones "Lo hice", "Necesito ayuda", "Me frustre"
+   - Botones "Lo hice", "Necesito ayuda", "Necesito pausa"
    - Colores AMIKO, accesible
    ```
 
