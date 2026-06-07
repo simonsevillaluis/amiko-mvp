@@ -166,7 +166,7 @@ export function TaskCard({
               </button>
             ) : (
               <Link
-                href={`/child-mode/${id}?from=task`}
+                href={`/student-mode/${id}?from=task`}
                 className="focus-ring flex min-h-10 items-center justify-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
               >
                 <AmikoIcon name="play" className="h-4 w-4" />
@@ -236,7 +236,7 @@ export function TaskCard({
               </button>
             ) : (
               <Link
-                href={`/child-mode/${id}?from=task`}
+                href={`/student-mode/${id}?from=task`}
                 className="focus-ring flex min-h-10 items-center justify-center gap-2 rounded-full bg-amiko-blue px-5 text-sm font-black text-white shadow-sm transition hover:bg-amiko-navy active:scale-[0.98]"
               >
                 Continuar tarea
