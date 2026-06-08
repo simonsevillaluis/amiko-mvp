@@ -9,7 +9,7 @@ import { CHAT_HOME_PATH, withChatFrom } from "@/lib/chat-navigation";
 const navItems: Array<{ href: string; label: string; icon: AmikoIconName }> = [
   { href: "/dashboard", label: "Inicio", icon: "home" },
   { href: CHAT_HOME_PATH, label: "Amiko IA", icon: "chat" },
-  { href: "/acompanamiento", label: "Recursos", icon: "heart" },
+  { href: "/acompanamiento", label: "Recursos", icon: "resources" },
   { href: "/comunidad", label: "Comunidad", icon: "users" },
 ];
 

@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { adaptedTask, student } from "@/lib/mock-data";
+import { adaptedTask } from "@/lib/mock-data";
 import { AmikoIcon } from "@/components/amiko-icon";
+import { StudentPhoneFrame } from "@/components/student-phone-frame";
 
 const SESSION_SECONDS = 25 * 60;
 const CHECK_IN_SECONDS = 20 * 60;
@@ -103,6 +104,7 @@ function messageClasses(tone: SessionMessage["tone"]) {
 
 function AccessFromTaskOnly() {
   return (
+    <StudentPhoneFrame>
     <main className="relative min-h-screen overflow-hidden bg-[#FBFBFB] text-amiko-ink flex flex-col justify-center items-center px-5 py-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(15,90,209,0.03)_0%,transparent_40%)]" />
       <section className="relative z-10 mx-auto flex min-h-[calc(100vh-64px)] max-w-[430px] flex-col items-center justify-center text-center">
@@ -126,6 +128,7 @@ function AccessFromTaskOnly() {
         </Link>
       </section>
     </main>
+    </StudentPhoneFrame>
   );
 }
 
@@ -191,6 +194,7 @@ export function StudentModeClient() {
   }
 
   return (
+    <StudentPhoneFrame>
     <main className="relative min-h-screen overflow-hidden bg-[#FBFBFB] text-amiko-ink">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(15,90,209,0.04)_0%,transparent_45%)]" />
 
@@ -349,7 +353,7 @@ export function StudentModeClient() {
       </div>
 
       {pauseOpen && !mustStop ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 p-4 backdrop-blur-sm sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2">
           <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center text-amiko-ink shadow-soft border border-slate-100">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amiko-mint text-amiko-green">
               <AmikoIcon name="calm" className="h-8 w-8" />
@@ -369,5 +373,6 @@ export function StudentModeClient() {
         </div>
       ) : null}
     </main>
+    </StudentPhoneFrame>
   );
 }

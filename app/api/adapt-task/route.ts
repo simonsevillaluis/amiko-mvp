@@ -31,6 +31,78 @@ El JSON debe tener exactamente esta estructura:
 
 difficulty_level debe ser "bajo", "medio" o "alto".`;
 
+// Helper to call any OpenAI-compatible API using standard fetch
+async function callOpenAiCompatibleAPI(
+  apiUrl: string,
+  modelName: string,
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string
+): Promise<string> {
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: modelName,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API error (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("Invalid API response format: choices[0].message.content is missing");
+  }
+  return content;
+}
+
+// Helper to extract and parse the adaptation JSON from AI raw response
+function parseAdaptationJson(raw: string): Omit<AdaptationResult, "originalText"> | null {
+  try {
+    const jsonStart = raw.indexOf("{");
+    const jsonEnd = raw.lastIndexOf("}");
+
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      const cleanJson = raw.slice(jsonStart, jsonEnd + 1);
+      const parsed = JSON.parse(cleanJson);
+
+      return {
+        simple_summary: String(parsed.simple_summary ?? ""),
+        steps: Array.isArray(parsed.steps)
+          ? parsed.steps.map(
+              (s: { number?: number; instruction?: string; visual_support?: string; adult_support?: string }, i: number) => ({
+                number: Number(s.number ?? i + 1),
+                instruction: String(s.instruction ?? ""),
+                visual_support: String(s.visual_support ?? ""),
+                adult_support: String(s.adult_support ?? ""),
+              }),
+            )
+          : [],
+        emotional_support: String(parsed.emotional_support ?? ""),
+        difficulty_level: ["bajo", "medio", "alto"].includes(parsed.difficulty_level)
+          ? (parsed.difficulty_level as "bajo" | "medio" | "alto")
+          : "medio",
+      };
+    }
+  } catch (err) {
+    console.error("JSON parsing error:", err);
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   let taskText: string;
   let options: string[];
@@ -47,62 +119,118 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El texto de la tarea es requerido." }, { status: 400 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  let adaptation: AdaptationResult | null = null;
+  const optionsNote =
+    options.length > 0
+      ? `\n\nConsideraciones del adulto: ${options.join(", ")}.`
+      : "";
 
-  if (apiKey) {
+  let adaptation: AdaptationResult | null = null;
+  let usedModelName = "mock-model";
+
+  // 1. Try Google Gemini API
+  if (process.env.GEMINI_API_KEY) {
     try {
+      console.log("Trying Gemini API...");
       const { GoogleGenerativeAI } = await import("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(apiKey);
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({
         model: "gemini-2.0-flash",
         systemInstruction: ADAPT_SYSTEM_PROMPT,
       });
-
-      const optionsNote =
-        options.length > 0
-          ? `\n\nConsideraciones del adulto: ${options.join(", ")}.`
-          : "";
 
       const result = await model.generateContent(
         `Adapta esta tarea escolar:\n\n"${taskText}"${optionsNote}`,
       );
 
       const raw = result.response.text().trim();
-      const jsonStart = raw.indexOf("{");
-      const jsonEnd = raw.lastIndexOf("}");
-
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
-
-        adaptation = {
-          originalText: taskText,
-          simple_summary: String(parsed.simple_summary ?? ""),
-          steps: Array.isArray(parsed.steps)
-            ? parsed.steps.map(
-                (s: { number?: number; instruction?: string; visual_support?: string; adult_support?: string }, i: number) => ({
-                  number: Number(s.number ?? i + 1),
-                  instruction: String(s.instruction ?? ""),
-                  visual_support: String(s.visual_support ?? ""),
-                  adult_support: String(s.adult_support ?? ""),
-                }),
-              )
-            : [],
-          emotional_support: String(parsed.emotional_support ?? ""),
-          difficulty_level: ["bajo", "medio", "alto"].includes(parsed.difficulty_level)
-            ? (parsed.difficulty_level as "bajo" | "medio" | "alto")
-            : "medio",
-        };
+      const parsed = parseAdaptationJson(raw);
+      if (parsed) {
+        adaptation = { originalText: taskText, ...parsed };
+        usedModelName = "gemini-2.0-flash";
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("Gemini adapt-task error:", msg);
+      console.error("Gemini adapt-task error, falling back...", err);
     }
   }
 
-  // Fallback: mock adaptation derived from the actual task text if Gemini failed or is not configured
+  // 2. Try DeepSeek API (highly efficient Chinese model)
+  if (!adaptation && process.env.DEEPSEEK_API_KEY) {
+    try {
+      console.log("Trying DeepSeek API...");
+      const raw = await callOpenAiCompatibleAPI(
+        "https://api.deepseek.com/v1/chat/completions",
+        "deepseek-chat",
+        process.env.DEEPSEEK_API_KEY,
+        ADAPT_SYSTEM_PROMPT,
+        `Adapta esta tarea escolar:\n\n"${taskText}"${optionsNote}`
+      );
+      const parsed = parseAdaptationJson(raw);
+      if (parsed) {
+        adaptation = { originalText: taskText, ...parsed };
+        usedModelName = "deepseek-chat";
+      }
+    } catch (err) {
+      console.error("DeepSeek adapt-task error, falling back...", err);
+    }
+  }
+
+  // 3. Try NVIDIA NIM API (hosting high-perf models like Llama 3 / DeepSeek)
+  if (!adaptation && process.env.NVIDIA_API_KEY) {
+    const nimModels = [
+      "moonshotai/kimi-k2.6",
+      "meta/llama-3.1-70b-instruct",
+      "deepseek-ai/deepseek-v4-flash",
+      "nvidia/llama-3.1-nemotron-70b-instruct"
+    ];
+    for (const nimModel of nimModels) {
+      try {
+        console.log(`Trying NVIDIA NIM API with model ${nimModel}...`);
+        const raw = await callOpenAiCompatibleAPI(
+          "https://integrate.api.nvidia.com/v1/chat/completions",
+          nimModel,
+          process.env.NVIDIA_API_KEY,
+          ADAPT_SYSTEM_PROMPT,
+          `Adapta esta tarea escolar:\n\n"${taskText}"${optionsNote}`
+        );
+        const parsed = parseAdaptationJson(raw);
+        if (parsed) {
+          adaptation = { originalText: taskText, ...parsed };
+          usedModelName = nimModel;
+          console.log(`NVIDIA NIM API success with model ${nimModel}`);
+          break; // Exit loop on success
+        }
+      } catch (err) {
+        console.error(`NVIDIA NIM adapt-task error with model ${nimModel}, trying next...`, err);
+      }
+    }
+  }
+
+  // 4. Try OpenAI API
+  if (!adaptation && process.env.OPENAI_API_KEY) {
+    try {
+      console.log("Trying OpenAI API...");
+      const raw = await callOpenAiCompatibleAPI(
+        "https://api.openai.com/v1/chat/completions",
+        "gpt-4o-mini",
+        process.env.OPENAI_API_KEY,
+        ADAPT_SYSTEM_PROMPT,
+        `Adapta esta tarea escolar:\n\n"${taskText}"${optionsNote}`
+      );
+      const parsed = parseAdaptationJson(raw);
+      if (parsed) {
+        adaptation = { originalText: taskText, ...parsed };
+        usedModelName = "gpt-4o-mini";
+      }
+    } catch (err) {
+      console.error("OpenAI adapt-task error, falling back...", err);
+    }
+  }
+
+  // 5. Hard fallback to Mock adaptation
   if (!adaptation) {
+    console.log("All APIs failed. Using mock adaptation.");
     adaptation = generateMockAdaptation(taskText, options);
+    usedModelName = "mock-model";
   }
 
   // Save to Supabase database if authenticated and has a student profile
@@ -129,7 +257,7 @@ export async function POST(request: Request) {
           steps: adaptation.steps,
           emotional_support: adaptation.emotional_support,
           difficulty_level: adaptation.difficulty_level,
-          model: apiKey ? "gemini-2.0-flash" : "mock-model",
+          model: usedModelName,
         },
       });
 

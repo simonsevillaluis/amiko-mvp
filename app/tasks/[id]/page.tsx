@@ -1,7 +1,5 @@
 import { getTaskDetails } from "@/lib/supabase/tasks";
-import { AdaptedTaskResult } from "@/components/adapted-task-result";
-import { AppShell } from "@/components/app-shell";
-import { Card, PageHeader } from "@/components/ui";
+import { TaskDetailTabs } from "@/components/task-detail-tabs";
 import { redirect } from "next/navigation";
 
 export default async function TaskResultPage({
@@ -18,31 +16,30 @@ export default async function TaskResultPage({
 
   const adaptation = task.adaptation
     ? {
-        originalText: task.original_text,
-        simple_summary: task.adaptation.simple_summary,
-        steps: task.adaptation.steps.map((s) => ({
-          number: s.number,
-          instruction: s.instruction,
+        simple_summary:    task.adaptation.simple_summary,
+        steps:             task.adaptation.steps.map((s) => ({
+          number:         s.number,
+          instruction:    s.instruction,
           visual_support: s.visual_support,
-          adult_support: s.adult_support,
+          adult_support:  s.adult_support,
         })),
-        emotional_support: task.adaptation.emotional_support || "",
-        difficulty_level: task.adaptation.difficulty_level,
+        emotional_support: task.adaptation.emotional_support,
+        difficulty_level:  task.adaptation.difficulty_level,
       }
     : undefined;
 
   return (
-    <AppShell>
-      <PageHeader
-        eyebrow="Tarea adaptada"
-        title="Lista para acompañarla paso a paso"
-        description="Puedes ajustar los pasos antes de empezar. No hace falta completar todo de una vez."
-      />
-      <Card className="mb-5 bg-amiko-cream">
-        <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-muted">Tarea original</p>
-        <p className="mt-2 text-lg font-bold leading-8 text-amiko-ink">{task.original_text}</p>
-      </Card>
-      <AdaptedTaskResult adaptation={adaptation} />
-    </AppShell>
+    <TaskDetailTabs
+      task={{
+        id:            task.id,
+        title:         task.title,
+        original_text: task.original_text,
+        status:        task.status,
+        subject:       task.subject,
+        adult_notes:   task.adult_notes,
+      }}
+      adaptation={adaptation}
+      studentName={task.student?.name ?? "tu estudiante"}
+    />
   );
 }

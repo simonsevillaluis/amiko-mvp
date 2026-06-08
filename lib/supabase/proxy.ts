@@ -16,14 +16,14 @@ const protectedRoutes = [
   "/mi-dia",
   "/onboarding",
   "/professionals",
-  "/progress",
+  "/logros",
   "/register/student",
   "/settings",
+  "/paso-a-paso",
   // "/student-mode", // Habilitado acceso directo para pruebas de demo
   "/student-portal",
   "/students",
   "/tasks",
-  "/teacher",
 ];
 
 const authRoutes = ["/", "/login", "/register"];

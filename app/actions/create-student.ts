@@ -3,14 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-type EducationLevel = "inicial" | "primaria" | "secundaria";
+type EducationLevel = "primaria" | "secundaria";
 
 type CreateStudentResult =
   | { success: true }
   | { success: false; error: string };
 
 const educationLevelLabels: Record<EducationLevel, string> = {
-  inicial: "Educación inicial",
   primaria: "Primaria",
   secundaria: "Secundaria",
 };
@@ -34,8 +33,8 @@ export async function createStudent(
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const supportedLevels = ["bajo", "medio", "alto"];
 
-  if (!trimmedName || !age.trim() || !educationLevel || !trimmedGradeYear) {
-    return { success: false, error: "Agrega nombre, edad y grado escolar para crear el perfil." };
+  if (!trimmedName || !age.trim() || !educationLevel || !trimmedGradeYear || !trimmedEmail) {
+    return { success: false, error: "Agrega nombre, edad, grado escolar y correo del estudiante para crear el perfil." };
   }
 
   if (!nameRegex.test(trimmedName)) {
@@ -49,7 +48,7 @@ export async function createStudent(
     return { success: false, error: "La edad debe ser un número entre 4 y 25 años." };
   }
 
-  if (trimmedEmail && !emailRegex.test(trimmedEmail)) {
+  if (!emailRegex.test(trimmedEmail)) {
     return { success: false, error: "El correo ingresado no es válido." };
   }
 

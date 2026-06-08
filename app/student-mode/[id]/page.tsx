@@ -1,5 +1,10 @@
-import { StudentModeClient } from "@/components/student-mode-client";
+import { redirect } from "next/navigation";
 
-export default function StudentModePage() {
-  return <StudentModeClient />;
+export default async function StudentModeLegacyPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  redirect(`/paso-a-paso/${id}`);
 }

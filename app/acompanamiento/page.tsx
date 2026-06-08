@@ -41,7 +41,7 @@ const tools: Array<{
   {
     title: "Logros",
     description: "Reconoce avances pequeños sin comparar ni exigir perfección.",
-    href: "/progress",
+    href: "/logros",
     icon: "award",
     tone: "bg-amiko-cream text-amiko-navy",
   },

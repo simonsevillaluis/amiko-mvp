@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { StudentPhoneFrame } from "@/components/student-phone-frame";
 import { StudentAvatar } from "@/components/student-portal-icons";
 import { studentPortalStudent } from "@/lib/student-mock-data";
 
@@ -33,9 +34,9 @@ export function StudentShell({
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#EAF0FD] via-white to-[#F0F8E8]">
+    <StudentPhoneFrame>
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-[430px] grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3">
+        <div className="grid grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3">
           <div className="flex items-center justify-start">
             <StudentAvatar name={studentPortalStudent.name} className="h-10 w-10 text-base shadow-sm" />
           </div>
@@ -77,12 +78,12 @@ export function StudentShell({
         </div>
       </header>
 
-      <main className="mx-auto max-w-[430px] px-5 py-5 pb-28">
+      <main className="px-5 py-5 pb-28">
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-2 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl">
-        <div className="mx-auto grid max-w-[430px] grid-cols-4">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-2 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2">
+        <div className="grid grid-cols-4">
           {navItems.map((item) => {
             const active =
               item.path === basePath
@@ -120,6 +121,6 @@ export function StudentShell({
           })}
         </div>
       </nav>
-    </div>
+    </StudentPhoneFrame>
   );
 }

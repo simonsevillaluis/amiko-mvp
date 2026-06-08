@@ -105,14 +105,14 @@ export default function HistoryPage() {
           let title = "Registro de tarea";
           let icon: AmikoIconName = "journal";
           let tone = "bg-amiko-mint text-green-800";
-          let href = "/progress";
+          let href = "/logros";
 
           if (e.event_type === "step_completed") {
             type = "Logros";
             title = "Paso completado";
             icon = "award";
             tone = "bg-amiko-cream text-amiko-navy";
-            href = "/progress";
+            href = "/logros";
           } else if (e.event_type === "help_requested") {
             type = "Registros";
             title = "Pidió ayuda";

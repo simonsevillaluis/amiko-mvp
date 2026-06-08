@@ -60,23 +60,14 @@ export function StudentAvatar({
   name?: string;
   className?: string;
 }) {
+  const initial = name?.trim().charAt(0).toUpperCase() || "A";
+
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full bg-gradient-to-br from-amiko-green to-green-600 shadow-card ${className}`}
+      className={`inline-flex items-center justify-center rounded-full bg-gradient-to-br from-amiko-green to-green-600 font-black text-white shadow-card ${className}`}
       aria-hidden="true"
     >
-      <svg
-        className="h-[55%] w-[55%] text-white"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        viewBox="0 0 24 24"
-      >
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
+      {initial}
     </span>
   );
 }

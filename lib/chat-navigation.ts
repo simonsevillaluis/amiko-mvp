@@ -10,14 +10,14 @@ const allowedChatReturnPaths = [
   "/acompanamiento",
   "/adapt-task",
   "/mi-dia",
-  "/progress",
+  "/logros",
   "/settings",
   "/alerts",
   "/students",
   "/comunidad",
   "/faq",
   "/tasks/new",
-  "/teacher",
+  "/paso-a-paso",
 ];
 
 function normalizePath(path: string | null | undefined) {

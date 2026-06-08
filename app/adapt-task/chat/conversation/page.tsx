@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
+import { MermaidDiagram } from "@/components/mermaid-diagram";
+import { Slideshow } from "@/components/slideshow";
 import {
   CHAT_FALLBACK_PATH,
   CHAT_HOME_PATH,
@@ -43,6 +45,54 @@ const contextOptions = [
   { title: "Tarea compartida", description: "La consigna o imagen que agregues en esta conversación." },
   { title: "Registros recientes", description: "Solo para recordar qué apoyos funcionaron antes." },
 ];
+
+function renderMessageContent(text: string, msgId: string) {
+  const parts: React.ReactNode[] = [];
+  const blockRegex = /```mermaid\n([\s\S]*?)```|```slides\n([\s\S]*?)```|!\[(.*?)\]\((.*?)\)/g;
+  let lastIndex = 0;
+  let match;
+  let i = 0;
+
+  while ((match = blockRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(<span key={`${msgId}-t${i++}`}>{text.substring(lastIndex, match.index)}</span>);
+    }
+    if (match[1] !== undefined) {
+      parts.push(
+        <span key={`${msgId}-m${i++}`} className="block">
+          <MermaidDiagram code={match[1]} />
+        </span>
+      );
+    } else if (match[2] !== undefined) {
+      parts.push(
+        <span key={`${msgId}-s${i++}`} className="block">
+          <Slideshow code={match[2]} />
+        </span>
+      );
+    } else {
+      const alt = match[3];
+      const src = match[4];
+      parts.push(
+        <span key={`${msgId}-img${i++}`} className="block my-3 max-w-[240px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt}
+            className="w-full h-auto rounded-2xl border border-slate-100 bg-white p-1 shadow-sm transition hover:scale-[1.03] duration-300"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        </span>
+      );
+    }
+    lastIndex = blockRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(<span key={`${msgId}-t${i}`}>{text.substring(lastIndex)}</span>);
+  }
+
+  return parts.length > 0 ? parts : <span>{text}</span>;
+}
 
 export default function ConversationPage() {
   const [showContext, setShowContext] = useState(false);
@@ -259,7 +309,9 @@ export default function ConversationPage() {
                     : "rounded-tl-sm bg-white text-amiko-ink"
                 }`}
               >
-                <p className="whitespace-pre-wrap text-sm font-bold leading-6">{msg.text}</p>
+                <div className="whitespace-pre-wrap text-sm font-bold leading-6">
+                  {renderMessageContent(msg.text, msg.id)}
+                </div>
               </div>
             </div>
           ))}

@@ -1,22 +1,35 @@
 # AMIKO MVP
 
-Demo web para validar el corazon de AMIKO: una persona adulta ingresa una tarea escolar, la app la muestra como una adaptacion simple y el estudiante puede avanzar en modo estudiante con una instruccion por pantalla.
+Demo web para validar el corazon de AMIKO: un adulto (padre, madre o cuidador) ingresa una tarea escolar, la app la adapta en pasos simples y cortos, y el estudiante avanza en la vista guiada de la tarea — una instruccion por pantalla, sin sobrecarga visual.
+
+El adulto gestiona la experiencia completa: crea el perfil del estudiante, adapta tareas y revisa el progreso. El estudiante solo interactua con la vista guiada de cada tarea, disenada para minimizar distracciones.
+
+## Roles
+
+| Quien | Ruta principal | Que puede hacer |
+|-------|---------------|-----------------|
+| Adulto (padre/cuidador) | `/dashboard` | Crear perfiles de estudiantes, adaptar tareas, revisar logros |
+| Estudiante | `/paso-a-paso/[id]` | Avanzar paso a paso en una tarea adaptada |
+| Estudiante (demo) | `/demo/student-portal` | Explorar el portal estudiantil sin cuenta |
 
 ## Recorrido de demo
 
 1. Abrir `/login` para iniciar sesion con correo/contrasena o Google usando Supabase.
-2. Entrar a `/dashboard` y presentar el perfil, tareas recientes y progreso basico.
-3. Ir a `/adapt-task` y revisar el formulario de tarea escolar.
-4. Abrir `/tasks/task-1` para mostrar la adaptacion estructurada.
-5. Probar el modo estudiante desde una tarea adaptada, con los botones `Lo hice`, `Necesito ayuda` y `Necesito pausa`.
-6. Revisar `/progress` y `/teacher` para conversar sobre utilidad para adultos y docentes.
+2. Entrar a `/dashboard` y presentar el perfil, tareas recientes y accesos rapidos.
+3. Ir a `/adapt-task` y revisar el formulario de adaptacion de tarea escolar.
+4. Abrir `/tasks/task-1` para mostrar la adaptacion estructurada generada por Gemini.
+5. Activar la vista guiada del estudiante desde una tarea adaptada — ruta `/paso-a-paso/[id]` — con los botones `Lo hice`, `Necesito ayuda` y `Necesito pausa`.
+6. Revisar `/logros` para mostrar el avance semanal del estudiante al adulto acompanante.
+7. Demostrar `/demo/student-portal/amiko` para mostrar la experiencia del lado del estudiante (Amiko chat, sin cuenta requerida).
+
+> `/teacher` existe como prototipo de vista docente pero no forma parte del recorrido de demo actual. Se activara en una fase futura.
 
 ## Criterios de validacion
 
 - La propuesta se entiende sin explicar una plataforma compleja.
 - La adaptacion reduce carga cognitiva: pasos cortos, apoyo visual y tono calmado.
-- El modo estudiante evita sobrecarga visual y permite avanzar paso a paso.
-- El progreso basico ayuda a acompanar sin parecer reporte clinico.
+- La vista guiada del estudiante evita sobrecarga visual y permite avanzar de a un paso.
+- Los logros ayudan al adulto a acompanar sin parecer reporte clinico.
 - El limite del producto queda claro: AMIKO es apoyo pedagogico, no herramienta medica.
 
 ## Estado actual
@@ -26,7 +39,15 @@ Demo web para validar el corazon de AMIKO: una persona adulta ingresa una tarea 
 - La ruta `/api/chat` usa Google Gemini mediante `GEMINI_API_KEY`.
 - No hay integracion OpenAI activa todavia; si se migra a OpenAI, mantener la clave solo en servidor.
 - No incluye pagos, marketplace, especialistas, comunidad ni app movil nativa.
-- La ruta tecnica `/child-mode/[id]` se mantiene temporalmente; refactor futuro sugerido: `student-portal`.
+- El estudiante no tiene cuenta propia todavia; su acceso futuro sera via correo de invitacion desde el perfil del adulto.
+
+## Documentos de investigacion (docs/)
+
+| Archivo | Contenido |
+|---------|-----------|
+| `docs/brief-mvp-nino.md` | Brief del MVP para la experiencia del estudiante |
+| `docs/analisis-competencia-nino.md` | Analisis de competencia enfocado en la experiencia del nino |
+| `docs/hallazgos-competencia-nino.md` | Hallazgos clave del analisis competitivo |
 
 ## Supabase
 
@@ -91,6 +112,6 @@ Checklist de despliegue:
 - [ ] Variables de entorno configuradas en Vercel para Preview y Production.
 - [ ] `supabase/schema.sql` aplicado en el proyecto Supabase correspondiente.
 - [ ] URLs de Supabase Auth actualizadas para dominio Vercel y dominio propio si aplica.
-- [ ] Preview revisado manualmente: `/`, `/login`, `/dashboard`, `/adapt-task`, `/progress`.
+- [ ] Preview revisado manualmente: `/`, `/login`, `/dashboard`, `/adapt-task`, `/logros`.
 - [ ] Flujos de registro e inicio de sesion probados manualmente por una persona, no por automatizacion.
 - [ ] Production deploy aprobado despues de validar preview.

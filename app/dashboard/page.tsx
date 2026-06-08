@@ -109,6 +109,9 @@ export default async function DashboardPage() {
   const currentStudent = students[0];
   const studentId = currentStudent.id;
 
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
   // Consultar estadísticas en tiempo real desde Supabase para el estudiante
   const [
     { count: completedTasksCount },
@@ -117,6 +120,7 @@ export default async function DashboardPage() {
     { count: frustrationReportedCount },
     { data: dbTasks },
     { data: progressEvents },
+    { count: recentHelpCount },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -161,6 +165,12 @@ export default async function DashboardPage() {
       .select("task_id, step_number, event_type")
       .eq("student_id", studentId)
       .eq("event_type", "step_completed"),
+    supabase
+      .from("progress_events")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", studentId)
+      .eq("event_type", "help_requested")
+      .gte("created_at", yesterday),
   ]);
 
   const hasTasks = dbTasks && dbTasks.length > 0;
@@ -236,6 +246,28 @@ export default async function DashboardPage() {
           ¿Cómo ayudamos hoy a <span className="text-amiko-green">{currentStudent.name}</span>?
         </p>
       </section>
+
+      {(recentHelpCount ?? 0) > 0 && (
+        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-sm">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <AmikoIcon name="help" className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black text-amber-800">
+              {currentStudent.name} pidió ayuda
+            </p>
+            <p className="text-xs font-bold text-amber-600">
+              Hay una solicitud de ayuda en las últimas 24 horas.
+            </p>
+          </div>
+          <Link
+            href="/acompanamiento"
+            className="shrink-0 rounded-full bg-amber-500 px-3 py-1.5 text-xs font-black text-white transition hover:brightness-95"
+          >
+            Ver
+          </Link>
+        </div>
+      )}
 
       <Link
         href="/adapt-task"
@@ -313,7 +345,7 @@ export default async function DashboardPage() {
             <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequeños avances que cuentan</h2>
           </div>
           <Link
-            href="/progress"
+            href="/logros"
             className="focus-ring shrink-0 rounded-full bg-amiko-green px-3 py-2 text-xs font-black text-white shadow-sm transition hover:brightness-95"
           >
             Ver logros

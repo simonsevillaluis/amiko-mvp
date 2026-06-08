@@ -12,7 +12,7 @@ const alerts = [
   {
     title: "Nuevo logro para reconocer",
     description: "Ángel volvió a intentarlo después de una pausa.",
-    href: "/progress",
+    href: "/logros",
     action: "Ver logro",
   },
   {

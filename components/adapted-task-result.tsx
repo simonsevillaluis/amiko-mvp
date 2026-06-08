@@ -1,5 +1,6 @@
 import { type AdaptationResult } from "@/lib/adapt-task";
 import { adaptedTask } from "@/lib/mock-data";
+import { ArasaacPictogram } from "./arasaac-pictogram";
 import { ButtonLink, Card, StatusPill } from "./ui";
 
 function toAdaptationResult(mock: typeof adaptedTask): AdaptationResult {
@@ -47,20 +48,25 @@ export function AdaptedTaskResult({ adaptation }: Props) {
         <div className="mt-6 space-y-3">
           {data.steps.map((step) => (
             <article key={step.number} className="rounded-xl border border-blue-100 bg-white p-4">
-              <div className="flex gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amiko-blue text-xl font-black text-white">
-                  {step.number}
-                </div>
-                <div>
-                  <h3 className="text-lg font-black leading-7 text-amiko-ink">{step.instruction}</h3>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <p className="rounded-lg bg-amiko-mint px-3 py-2 text-sm font-bold text-green-900">
-                      Apoyo visual: {step.visual_support}
-                    </p>
-                    <p className="rounded-lg bg-amiko-cream px-3 py-2 text-sm font-bold text-amiko-ink">
-                      Para acompañar: {step.adult_support}
-                    </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                <div className="flex gap-4 flex-1">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amiko-blue text-xl font-black text-white">
+                    {step.number}
                   </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-black leading-7 text-amiko-ink">{step.instruction}</h3>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <p className="rounded-lg bg-amiko-mint px-3 py-2 text-sm font-bold text-green-900">
+                        Apoyo visual: {step.visual_support}
+                      </p>
+                      <p className="rounded-lg bg-amiko-cream px-3 py-2 text-sm font-bold text-amiko-ink">
+                        Para acompañar: {step.adult_support}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end sm:justify-start items-center shrink-0 self-center">
+                  <ArasaacPictogram searchText={step.visual_support} className="h-16 w-16" />
                 </div>
               </div>
             </article>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
 import { CHAT_HOME_PATH } from "@/lib/chat-navigation";
@@ -23,7 +23,7 @@ const modePanels: Record<ModeKey, {
   tareas: {
     eyebrow: "Aclara la tarea",
     title: "Dime qué parte se trabó",
-    description: `Sube una foto, pega la consigna o cuéntame qué necesita tu estudiante.`,
+    description: "Sube una fuente, pega la consigna o cuéntame qué necesita tu estudiante.",
     chips: ["No sabe empezar", "La consigna es larga", "Necesita pasos cortos", "Mejor con apoyo visual"],
     placeholder: "Ej: La tarea pide resolver varias instrucciones y no sabe cuál hacer primero.",
     helper: "Amiko preparará un primer paso claro, apoyos visuales y una forma sencilla de acompañar.",
@@ -32,7 +32,7 @@ const modePanels: Record<ModeKey, {
   calma: {
     eyebrow: "Calma para acompañar",
     title: "Primero cuidamos el tono",
-    description: `Pensado para ti, como adulto: Amiko te ayuda a sostener la calma y retomar con tu estudiante.`,
+    description: "Pensado para ti, como adulto: Amiko te ayuda a sostener la calma y retomar con tu estudiante.",
     chips: ["Se frustró", "Me estoy saturando", "Necesitamos pausa", "Volver a intentar"],
     placeholder: "Ej: Me cuesta saber qué decir cuando se bloquea con la tarea.",
     helper: "Amiko sugerirá una respuesta breve, una pausa posible y una forma tranquila de volver a la actividad.",
@@ -58,11 +58,37 @@ const modePanels: Record<ModeKey, {
   },
 };
 
+// ─── Source options (bottom sheet) ────────────────────────────────────────────
+
+type SourceKey = "pdf" | "audio" | "imagen" | "web" | "youtube" | "texto";
+
+const SOURCE_OPTIONS: Array<{
+  key: SourceKey;
+  label: string;
+  sublabel: string;
+  icon: AmikoIconName;
+  premium: boolean;
+}> = [
+  { key: "pdf",     label: "PDF",          sublabel: "Documento de texto o guía",   icon: "resources", premium: true  },
+  { key: "audio",   label: "Audio",        sublabel: "Grabación o nota de voz",      icon: "mic",       premium: true  },
+  { key: "imagen",  label: "Imagen",       sublabel: "Foto de la tarea o pizarrón", icon: "image",     premium: true  },
+  { key: "web",     label: "Sitio web",    sublabel: "Enlace o página de internet",  icon: "task",      premium: true  },
+  { key: "youtube", label: "YouTube",      sublabel: "Video o explicación en línea", icon: "play",      premium: true  },
+  { key: "texto",   label: "Texto copiado", sublabel: "Pega la consigna directamente", icon: "journal", premium: false },
+];
+
+const PREMIUM_COPY: Record<string, { title: string; subtitle: string; benefits: string[] }> = {
+  pdf:     { title: "Sube PDFs con Premium",     subtitle: "Comparte documentos y Amiko los analiza por ti.",    benefits: ["PDFs y documentos de texto", "Análisis detallado del contenido", "Sin límite de archivos"] },
+  audio:   { title: "Envía audios con Premium",  subtitle: "Graba o sube una nota de voz y Amiko la transcribe.", benefits: ["Grabaciones y notas de voz", "Transcripción automática", "Análisis del contenido"] },
+  imagen:  { title: "Sube fotos con Premium",    subtitle: "Sube la foto de la tarea y Amiko la analiza visualmente.", benefits: ["Fotos y archivos ilimitados", "Análisis visual de tareas", "Sin límite de mensajes"] },
+  web:     { title: "Comparte enlaces con Premium", subtitle: "Pega un enlace y Amiko leerá el contenido por ti.", benefits: ["Lectura de páginas web", "Análisis de contenido externo", "Sin límite de fuentes"] },
+  youtube: { title: "Analiza videos con Premium", subtitle: "Comparte un video de YouTube y Amiko extrae lo importante.", benefits: ["Análisis de videos de YouTube", "Resumen del contenido", "Sin límite de videos"] },
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function AmikoIAPage() {
-  const [showCameraPermission, setShowCameraPermission] = useState(false);
-  const [showFilePermission, setShowFilePermission] = useState(false);
   const [selectedMode, setSelectedMode] = useState<ModeKey>("tareas");
-  // Multi-select per mode (except mensajes which is single-select)
   const [selectedChoices, setSelectedChoices] = useState<Record<ModeKey, string[]>>({
     tareas:   [modePanels.tareas.chips[0]],
     calma:    [modePanels.calma.chips[0]],
@@ -70,7 +96,15 @@ export default function AmikoIAPage() {
     mensajes: [modePanels.mensajes.chips[0]],
   });
   const [contextNote, setContextNote] = useState("");
-  const [attachmentChoice, setAttachmentChoice] = useState<"foto" | "archivo" | null>(null);
+  const [selectedSource, setSelectedSource] = useState<SourceKey | null>(null);
+
+  // Bottom sheet
+  const [showSheet, setShowSheet] = useState(false);
+
+  // Premium modal
+  const [premiumSource, setPremiumSource] = useState<SourceKey | null>(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const selectedModeMeta = modes.find((m) => m.key === selectedMode) ?? modes[0];
   const selectedPanel = modePanels[selectedMode];
@@ -79,16 +113,17 @@ export default function AmikoIAPage() {
   const conversationParams = new URLSearchParams({ mode: selectedMode, need: activeChips.join(",") });
   conversationParams.set("from", CHAT_HOME_PATH);
   if (contextNote.trim()) conversationParams.set("note", contextNote.trim());
-  if (attachmentChoice) conversationParams.set("attachment", attachmentChoice);
+  if (selectedSource && selectedSource !== "texto") conversationParams.set("attachment", selectedSource);
   const conversationHref = `/adapt-task/chat/conversation?${conversationParams.toString()}`;
 
+  // Lock body scroll when a sheet/modal is open
   useEffect(() => {
-    const isOpen = showCameraPermission || showFilePermission;
+    const isOpen = showSheet || premiumSource !== null;
     if (!isOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
-  }, [showCameraPermission, showFilePermission]);
+  }, [showSheet, premiumSource]);
 
   function toggleChip(chip: string) {
     if (selectedMode === "mensajes") {
@@ -104,6 +139,26 @@ export default function AmikoIAPage() {
     });
   }
 
+  function handleSourceSelect(key: SourceKey) {
+    if (key === "texto") {
+      setSelectedSource("texto");
+      setShowSheet(false);
+      setTimeout(() => textareaRef.current?.focus(), 300);
+      return;
+    }
+    setShowSheet(false);
+    setPremiumSource(key);
+  }
+
+  function closePremium() {
+    setPremiumSource(null);
+    setSelectedSource(null);
+  }
+
+  const sourceLabel = selectedSource
+    ? SOURCE_OPTIONS.find((s) => s.key === selectedSource)?.label ?? null
+    : null;
+
   return (
     <>
       <AppShell>
@@ -117,7 +172,7 @@ export default function AmikoIAPage() {
           </p>
         </section>
 
-        {/* Quick-start: go straight to chat */}
+        {/* Quick-start */}
         <Link
           href={conversationHref}
           className="focus-ring mb-6 flex items-center gap-4 rounded-2xl border-2 border-amiko-green bg-amiko-sky px-4 py-4 shadow-card transition hover:-translate-y-0.5"
@@ -188,7 +243,7 @@ export default function AmikoIAPage() {
             </div>
           </div>
 
-          {/* Chips — multi-select (except mensajes) */}
+          {/* Chips */}
           <div className="mt-3 border-t border-slate-100 pt-3">
             <div className="flex flex-wrap gap-2.5">
               {selectedPanel.chips.map((chip) => {
@@ -212,50 +267,60 @@ export default function AmikoIAPage() {
             </div>
           </div>
 
-          {/* Attachment buttons — only in tareas mode */}
-          {selectedMode === "tareas" ? (
-            <div className="mt-4 grid grid-cols-2 gap-2">
+          {/* Subir fuente + Tomar foto — solo en modo tareas */}
+          {selectedMode === "tareas" && (
+            <div className="mt-4 flex items-stretch gap-2">
+              {/* Subir fuente (clip) */}
               <button
                 type="button"
-                onClick={() => { setAttachmentChoice("foto"); setShowCameraPermission(true); }}
-                className={`focus-ring flex min-h-14 flex-col items-center justify-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-black transition ${
-                  attachmentChoice === "foto"
-                    ? "border-amiko-green bg-amiko-mint text-green-800"
-                    : "border-blue-100 bg-slate-50 text-amiko-blue hover:border-amiko-blue/40 hover:bg-amiko-sky"
+                onClick={() => setShowSheet(true)}
+                className={`focus-ring flex flex-1 items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition ${
+                  selectedSource
+                    ? "border-amiko-green bg-amiko-mint"
+                    : "border-blue-100 bg-slate-50 hover:border-amiko-blue/40 hover:bg-amiko-sky"
                 }`}
               >
-                <AmikoIcon name="camera" className="h-5 w-5" />
-                Subir foto
-                <span className="text-[10px] font-bold text-amiko-muted leading-none">
-                  {attachmentChoice === "foto" ? "Seleccionado ✓" : "Cámara o galería"}
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                  selectedSource ? "bg-amiko-green text-white" : "bg-white text-amiko-blue shadow-sm"
+                }`}>
+                  <AmikoIcon name="clip" className="h-4 w-4" />
                 </span>
+                <span className="min-w-0 flex-1">
+                  <span className={`block text-sm font-black ${selectedSource ? "text-green-800" : "text-amiko-blue"}`}>
+                    {selectedSource ? `${sourceLabel} ✓` : "Subir fuente"}
+                  </span>
+                  <span className="block text-[11px] font-bold text-amiko-muted">
+                    {selectedSource ? "Toca para cambiar" : "PDF, audio, web, YouTube…"}
+                  </span>
+                </span>
+                <AmikoIcon name="chevron" className={`h-4 w-4 shrink-0 ${selectedSource ? "text-amiko-green" : "text-slate-400"}`} />
               </button>
+
+              {/* Tomar foto */}
               <button
                 type="button"
-                onClick={() => { setAttachmentChoice("archivo"); setShowFilePermission(true); }}
-                className={`focus-ring flex min-h-14 flex-col items-center justify-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-black transition ${
-                  attachmentChoice === "archivo"
-                    ? "border-amiko-green bg-amiko-mint text-green-800"
-                    : "border-blue-100 bg-slate-50 text-amiko-blue hover:border-amiko-blue/40 hover:bg-amiko-sky"
-                }`}
+                onClick={() => { setShowSheet(false); setPremiumSource("imagen"); }}
+                className="focus-ring flex shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-blue-100 bg-slate-50 px-3.5 py-2 transition hover:border-amiko-blue/40 hover:bg-amiko-sky"
               >
-                <AmikoIcon name="clip" className="h-5 w-5" />
-                Adjuntar archivo
-                <span className="text-[10px] font-bold text-amiko-muted leading-none">
-                  {attachmentChoice === "archivo" ? "Seleccionado ✓" : "PDF, imagen, doc"}
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-amiko-blue shadow-sm">
+                  <AmikoIcon name="camera" className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-black leading-tight text-amiko-muted">
+                  Tomar foto
                 </span>
               </button>
             </div>
-          ) : null}
+          )}
 
           {/* Context note */}
           <label className="mt-4 block">
             <span className="text-sm font-black text-amiko-ink">Cuéntame un poco</span>
             <textarea
+              ref={textareaRef}
               rows={4}
               value={contextNote}
               onChange={(e) => setContextNote(e.target.value)}
-              placeholder={selectedPanel.placeholder}
+              placeholder={selectedSource === "texto" ? "Pega aquí la instrucción o consigna de la tarea…" : selectedPanel.placeholder}
               className="focus-ring mt-2 w-full resize-none rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-sm font-bold leading-6 text-amiko-ink placeholder:text-slate-400"
             />
           </label>
@@ -274,35 +339,92 @@ export default function AmikoIAPage() {
         </section>
       </AppShell>
 
-      {/* Premium modal — foto */}
-      {showCameraPermission ? (
+      {/* ── Bottom sheet overlay ── */}
+      {showSheet && (
         <div
-          className="fixed inset-0 z-[100] flex touch-none items-center justify-center overflow-hidden overscroll-none bg-[#161616]/85 px-5 py-4 backdrop-blur-[2px]"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="flex w-full max-w-[330px] flex-col items-center">
-            <Image
-              src="/amiko-character/amiko-character-secondary.svg"
-              alt="Amiko"
-              width={100}
-              height={100}
-              className="mb-2 object-contain drop-shadow-lg"
-              priority
-            />
-            <div className="w-full overflow-hidden rounded-3xl bg-white shadow-soft">
-              <div className="bg-gradient-to-br from-amiko-navy to-[#082A61] px-5 py-4 text-center">
-                <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white/15">
-                  <AmikoIcon name="camera" className="h-5 w-5 text-white" />
+          className="fixed inset-0 z-[90] bg-amiko-navy/50 backdrop-blur-sm"
+          onClick={() => setShowSheet(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Bottom sheet ── */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Subir fuente"
+        className={`fixed inset-x-0 bottom-0 z-[95] rounded-t-3xl bg-white shadow-soft transition-transform duration-300 ease-out ${
+          showSheet ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pb-1 pt-3">
+          <div className="h-1 w-10 rounded-full bg-slate-200" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3">
+          <h2 className="text-lg font-black text-amiko-ink">Subir fuente</h2>
+          <button
+            type="button"
+            onClick={() => setShowSheet(false)}
+            aria-label="Cerrar"
+            className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-amiko-muted transition hover:bg-slate-200"
+          >
+            <AmikoIcon name="close" className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Options */}
+        <div className="px-4 pb-10">
+          {SOURCE_OPTIONS.map((opt, i) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => handleSourceSelect(opt.key)}
+              className={`flex w-full items-center gap-4 px-2 py-3.5 text-left transition hover:bg-slate-50 ${
+                i < SOURCE_OPTIONS.length - 1 ? "border-b border-slate-100" : ""
+              }`}
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amiko-sky text-amiko-blue">
+                <AmikoIcon name={opt.icon} className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-black text-amiko-ink">{opt.label}</span>
+                <span className="block text-xs font-bold text-amiko-muted">{opt.sublabel}</span>
+              </span>
+              {opt.premium && (
+                <span className="shrink-0 rounded-full bg-amiko-cream px-2.5 py-0.5 text-[10px] font-black text-amiko-navy">
+                  Premium
                 </span>
-                <h2 className="mt-2 text-lg font-black text-white">Sube fotos con Premium</h2>
-                <p className="mt-1 text-xs font-bold leading-4 text-blue-200">
-                  Sube la foto de la tarea y Amiko la analiza visualmente por ti.
-                </p>
+              )}
+              <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-slate-300" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Premium modal ── */}
+      {premiumSource && (() => {
+        const copy = PREMIUM_COPY[premiumSource];
+        const opt  = SOURCE_OPTIONS.find((s) => s.key === premiumSource)!;
+        return (
+          <div
+            className="fixed inset-0 z-[100] flex touch-none items-center justify-center overflow-hidden overscroll-none bg-[#161616]/85 px-5 py-4 backdrop-blur-[2px]"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="w-full max-w-[330px] overflow-hidden rounded-3xl bg-white shadow-soft">
+              <div className="bg-gradient-to-br from-amiko-navy to-[#082A61] px-5 py-5 text-center">
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                  <AmikoIcon name={opt.icon} className="h-6 w-6 text-white" />
+                </span>
+                <h2 className="mt-3 text-lg font-black text-white">{copy.title}</h2>
+                <p className="mt-1.5 text-sm font-bold leading-5 text-blue-200">{copy.subtitle}</p>
               </div>
               <div className="px-5 py-4">
                 <div className="space-y-2">
-                  {["Fotos y archivos ilimitados", "Análisis visual de tareas", "Sin límite de mensajes"].map((b) => (
+                  {copy.benefits.map((b) => (
                     <div key={b} className="flex items-center gap-2">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amiko-mint text-amiko-green">
                         <AmikoIcon name="check" className="h-3 w-3" />
@@ -320,67 +442,20 @@ export default function AmikoIAPage() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => { setShowCameraPermission(false); setAttachmentChoice(null); }}
+                    onClick={closePremium}
                     className="focus-ring min-h-11 rounded-full border-2 border-amiko-navy px-4 text-sm font-black text-amiko-navy"
                   >
                     Ahora no
                   </button>
                 </div>
-                <p className="mt-2 text-center text-xs font-bold text-amiko-muted">Próximamente disponible</p>
+                <p className="mt-2 text-center text-xs font-bold text-amiko-muted">
+                  Próximamente disponible
+                </p>
               </div>
             </div>
           </div>
-        </div>
-      ) : null}
-
-      {/* Premium modal — archivo */}
-      {showFilePermission ? (
-        <div
-          className="fixed inset-0 z-[100] flex touch-none items-center justify-center overflow-hidden overscroll-none bg-[#161616]/85 px-5 py-4 backdrop-blur-[2px]"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-[330px] overflow-hidden rounded-3xl bg-white shadow-soft">
-            <div className="bg-gradient-to-br from-amiko-navy to-[#082A61] px-5 py-5 text-center">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                <AmikoIcon name="clip" className="h-6 w-6 text-white" />
-              </span>
-              <h2 className="mt-3 text-lg font-black text-white">Adjunta archivos con Premium</h2>
-              <p className="mt-1.5 text-sm font-bold leading-5 text-blue-200">
-                Comparte PDFs, documentos e imágenes para que Amiko los analice contigo.
-              </p>
-            </div>
-            <div className="px-5 py-4">
-              <div className="space-y-2">
-                {["PDFs, imágenes y documentos", "Análisis detallado del contenido", "Sin límite de archivos"].map((b) => (
-                  <div key={b} className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amiko-mint text-amiko-green">
-                      <AmikoIcon name="check" className="h-3 w-3" />
-                    </span>
-                    <span className="text-sm font-bold text-amiko-ink">{b}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <Link
-                  href="/settings"
-                  className="focus-ring flex min-h-11 items-center justify-center rounded-full bg-amiko-green px-4 text-sm font-black text-white shadow-card"
-                >
-                  Ver Premium
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => { setShowFilePermission(false); setAttachmentChoice(null); }}
-                  className="focus-ring min-h-11 rounded-full border-2 border-amiko-navy px-4 text-sm font-black text-amiko-navy"
-                >
-                  Ahora no
-                </button>
-              </div>
-              <p className="mt-2 text-center text-xs font-bold text-amiko-muted">Próximamente disponible</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
+        );
+      })()}
     </>
   );
 }
