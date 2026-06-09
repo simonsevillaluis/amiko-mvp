@@ -102,7 +102,8 @@ export default function DemoRecursosPage() {
       {/* Pausas rápidas */}
       <section>
         <div className="mb-3 flex items-center gap-2">
-          <span className="select-none text-base">⏸️</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pause%20button/3D/pause_button_3d.png" alt="" className="h-5 w-5 object-contain" />
           <h2 className="text-base font-black text-amiko-ink">Pausas rápidas</h2>
         </div>
         <div className="space-y-2">

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AmikoIcon } from "@/components/amiko-icon";
+import { AmikoMark } from "@/components/student-portal-icons";
 import { MermaidDiagram } from "@/components/mermaid-diagram";
 import { Slideshow } from "@/components/slideshow";
-import { AmikoMark, StudentPortalIcon } from "@/components/student-portal-icons";
 import { childStudent } from "@/lib/student-mock-data";
 
 type Message = {
@@ -13,11 +14,32 @@ type Message = {
   text: string;
 };
 
-const starters = [
-  { label: "No entendi esto", icon: "help" as const },
-  { label: "Vamos paso a paso", icon: "task" as const },
-  { label: "Quiero pedir ayuda", icon: "users" as const },
+const STARTERS = [
+  {
+    id: "no-entendi",
+    label: "No entendí esto",
+    iconUrl: "https://img.icons8.com/3d-fluency/94/question-mark.png",
+  },
+  {
+    id: "paso-a-paso",
+    label: "Paso a paso",
+    iconUrl: "https://img.icons8.com/3d-fluency/94/staircase.png",
+  },
+  {
+    id: "pedir-ayuda",
+    label: "Quiero pedir ayuda",
+    iconUrl: "https://img.icons8.com/3d-fluency/94/hand.png",
+  },
+  {
+    id: "mapa-mental",
+    label: "Hacer un mapa mental",
+    iconUrl: "https://img.icons8.com/3d-fluency/94/mind-map.png",
+  },
 ];
+
+// z-[60] > StudentShell nav (z-40) — covers fixed bottom nav
+const OVERLAY =
+  "fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#EDF4FF] text-amiko-ink sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2 sm:shadow-[0_24px_80px_rgba(9,54,124,0.24)]";
 
 function renderMessageContent(text: string, key: string) {
   const parts: React.ReactNode[] = [];
@@ -31,21 +53,18 @@ function renderMessageContent(text: string, key: string) {
       parts.push(<span key={`${key}-t${i++}`}>{text.substring(lastIndex, match.index)}</span>);
     }
     if (match[1] !== undefined) {
-      // Mermaid block
       parts.push(
         <span key={`${key}-m${i++}`} className="block">
           <MermaidDiagram code={match[1]} />
         </span>
       );
     } else if (match[2] !== undefined) {
-      // Slides block
       parts.push(
         <span key={`${key}-s${i++}`} className="block">
           <Slideshow code={match[2]} />
         </span>
       );
     } else {
-      // Image markdown
       const alt = match[3];
       const src = match[4];
       parts.push(
@@ -71,6 +90,7 @@ function renderMessageContent(text: string, key: string) {
 }
 
 export default function DemoAmikoPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -80,7 +100,13 @@ export default function DemoAmikoPage() {
   ]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showStarters, setShowStarters] = useState(true);
   const [plusOpen, setPlusOpen] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   async function send(text: string) {
     if (!text.trim() || loading) return;
@@ -90,6 +116,7 @@ export default function DemoAmikoPage() {
     setMessages(newMessages);
     setInputText("");
     setPlusOpen(false);
+    setShowStarters(false);
     setLoading(true);
 
     try {
@@ -112,7 +139,7 @@ export default function DemoAmikoPage() {
         const err = String(data.error);
         const isBusy = err.includes("503") || err.includes("429") || err.toLowerCase().includes("quota");
         replyText = isBusy
-          ? "Ahora estoy ocupado. Intenta en unos segundos."
+          ? "Ahora estoy ocupado. Intenta en unos segundos. 🙏"
           : "Algo falló. ¿Lo intentamos de nuevo?";
       } else {
         replyText = data.text ?? "No pude responder. ¿Lo intentamos?";
@@ -133,60 +160,43 @@ export default function DemoAmikoPage() {
   }
 
   return (
-    <>
-      {plusOpen ? (
-        <div
-          className="fixed inset-0 z-50 sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2"
-          onClick={() => setPlusOpen(false)}
-        >
-          <div
-            className="absolute bottom-24 left-4 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-soft"
-            onClick={(event) => event.stopPropagation()}
+    <div className={OVERLAY}>
+      {/* Header */}
+      <header className="shrink-0 border-b border-blue-100 bg-white/95 px-4 py-3 backdrop-blur-xl">
+        <div className="grid grid-cols-[40px_1fr_40px] items-center gap-3">
+          <button
+            type="button"
+            aria-label="Volver"
+            onClick={() => router.back()}
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full text-amiko-navy transition hover:bg-amiko-sky"
           >
-            <button
-              type="button"
-              onClick={() => send("Tengo una foto de la tarea.")}
-              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-black text-amiko-ink transition hover:bg-slate-50"
-            >
-              <AmikoIcon name="image" className="h-4 w-4 text-amiko-blue" />
-              Foto de la tarea
-            </button>
-            <div className="h-px bg-slate-100" />
-            <button
-              type="button"
-              onClick={() => {
-                setMessages([{
-                  id: "welcome",
-                  role: "amiko",
-                  text: `¡Hola, ${childStudent.name}! Soy Amiko. 😊 ¿En qué te puedo ayudar hoy?`,
-                }]);
-                setPlusOpen(false);
-              }}
-              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-black text-amiko-ink transition hover:bg-slate-50"
-            >
-              <AmikoIcon name="close" className="h-4 w-4 text-amiko-muted" />
-              Reiniciar
-            </button>
+            <AmikoIcon name="back" className="h-6 w-6" />
+          </button>
+          <div className="flex items-center justify-center gap-2">
+            <AmikoMark className="h-7 w-7 shrink-0" />
+            <h1 className="text-lg font-black text-amiko-navy">Amiko</h1>
           </div>
+          <button
+            type="button"
+            aria-label="Ayudas rápidas"
+            aria-pressed={showStarters}
+            onClick={() => setShowStarters((v) => !v)}
+            className={`focus-ring flex h-10 w-10 items-center justify-center rounded-full transition ${
+              showStarters ? "bg-amiko-mint text-amiko-green" : "text-amiko-navy hover:bg-amiko-sky"
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://img.icons8.com/3d-fluency/94/idea.png"
+              alt=""
+              className="h-6 w-6 object-contain"
+            />
+          </button>
         </div>
-      ) : null}
+      </header>
 
-      <section className="mb-5 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amiko-sky text-amiko-green shadow-sm">
-          <AmikoIcon name="chat" className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase leading-none tracking-[0.14em] text-amiko-green">
-            Asistente
-          </p>
-          <h1 className="mt-1 text-2xl font-black text-amiko-ink">Amiko</h1>
-        </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amiko-sky text-amiko-blue shadow-sm">
-          <AmikoIcon name="shield" className="h-5 w-5" />
-        </div>
-      </section>
-
-      <section className="space-y-4">
+      {/* Messages */}
+      <section className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -196,11 +206,11 @@ export default function DemoAmikoPage() {
             <div
               className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${
                 message.role === "user"
-                  ? "rounded-br-none bg-amiko-blue text-white"
+                  ? "rounded-br-none bg-amiko-navy text-white"
                   : "rounded-bl-none bg-white text-amiko-ink"
               }`}
             >
-              <div className="whitespace-pre-wrap text-base font-bold leading-7">
+              <div className="whitespace-pre-wrap text-sm font-bold leading-6">
                 {renderMessageContent(message.text, message.id)}
               </div>
             </div>
@@ -223,64 +233,109 @@ export default function DemoAmikoPage() {
             </div>
           </div>
         )}
+
+        <div ref={bottomRef} />
       </section>
 
-      <section className="mt-5 space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
-          Elige una ayuda
-        </p>
-        {starters.map((starter) => (
+      {/* Quick starters panel */}
+      {showStarters && (
+        <div className="shrink-0 border-t border-slate-100 bg-white/90 px-4 py-3 backdrop-blur-sm">
+          <p className="mb-2 text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">
+            Ayudas rápidas
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {STARTERS.map((starter) => (
+              <button
+                key={starter.id}
+                type="button"
+                onClick={() => send(starter.label)}
+                disabled={loading}
+                className="focus-ring flex shrink-0 items-center gap-2 rounded-full border border-amiko-blue/20 bg-amiko-sky px-3.5 py-2.5 text-xs font-black text-amiko-navy transition hover:bg-amiko-mint active:scale-95 disabled:opacity-50"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={starter.iconUrl} alt="" className="h-5 w-5 object-contain" />
+                {starter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input bar */}
+      <footer className="shrink-0 border-t border-blue-100 bg-white/95 px-3 pb-4 pt-3 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
           <button
-            key={starter.label}
             type="button"
-            onClick={() => send(starter.label)}
-            disabled={loading}
-            className="focus-ring flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm transition active:scale-[0.98] disabled:opacity-50"
+            aria-label="Más opciones"
+            onClick={() => setPlusOpen((v) => !v)}
+            className="focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-amiko-blue transition hover:bg-amiko-sky"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amiko-sky text-amiko-blue">
-              <StudentPortalIcon name={starter.icon} className="h-6 w-6" />
-            </span>
-            <span className="flex-1 text-base font-black text-amiko-ink">
-              {starter.label}
-            </span>
-            <AmikoIcon name="chevron" className="h-4 w-4 text-slate-300" />
+            <AmikoIcon name="plus" className="h-5 w-5" />
           </button>
-        ))}
-      </section>
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                send(inputText);
+              }
+            }}
+            placeholder="Escríbeme algo..."
+            disabled={loading}
+            className="min-w-0 flex-1 rounded-full border border-blue-100 bg-slate-50 px-4 py-3 text-sm font-bold text-amiko-ink placeholder:text-slate-400 outline-none focus:border-amiko-blue disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={() => send(inputText)}
+            disabled={!inputText.trim() || loading}
+            aria-label="Enviar mensaje"
+            className="focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amiko-green text-white shadow-card transition active:scale-90 disabled:opacity-40"
+          >
+            <AmikoIcon name="send" className="h-5 w-5" />
+          </button>
+        </div>
+      </footer>
 
-      <section className="mt-6 flex items-center gap-2 rounded-2xl border border-slate-100/60 bg-white p-2.5 shadow-card">
-        <button
-          type="button"
-          onClick={() => setPlusOpen((value) => !value)}
-          className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100"
-          aria-label="Mas opciones"
+      {/* Plus menu popup */}
+      {plusOpen && (
+        <div
+          className="fixed inset-0 z-[70] sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2"
+          onClick={() => setPlusOpen(false)}
         >
-          <AmikoIcon name="plus" className="h-5 w-5" />
-        </button>
-        <input
-          type="text"
-          value={inputText}
-          onChange={(event) => setInputText(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              send(inputText);
-            }
-          }}
-          placeholder="Escribeme algo..."
-          disabled={loading}
-          className="min-w-0 flex-1 rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-bold text-amiko-ink outline-none placeholder:text-slate-400 disabled:opacity-60"
-        />
-        <button
-          type="button"
-          onClick={() => send(inputText)}
-          disabled={!inputText.trim() || loading}
-          className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amiko-blue text-white shadow-card transition active:scale-90 disabled:opacity-40"
-          aria-label="Enviar mensaje"
-        >
-          <AmikoIcon name="send" className="h-5 w-5" />
-        </button>
-      </section>
-    </>
+          <div
+            className="absolute bottom-20 left-4 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-soft"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => send("Tengo una foto de la tarea.")}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-black text-amiko-ink transition hover:bg-slate-50"
+            >
+              <AmikoIcon name="image" className="h-4 w-4 text-amiko-blue" />
+              Foto de la tarea
+            </button>
+            <div className="h-px bg-slate-100" />
+            <button
+              type="button"
+              onClick={() => {
+                setMessages([{
+                  id: "welcome",
+                  role: "amiko",
+                  text: `¡Hola, ${childStudent.name}! Soy Amiko. 😊 ¿En qué te puedo ayudar hoy?`,
+                }]);
+                setShowStarters(true);
+                setPlusOpen(false);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-black text-amiko-ink transition hover:bg-slate-50"
+            >
+              <AmikoIcon name="close" className="h-4 w-4 text-amiko-muted" />
+              Reiniciar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -22,8 +22,13 @@ type Phase = "ready" | "workspace" | "done";
 type WorkspaceTab = "pasos" | "amiko" | "recursos";
 type SaveFn = (...args: Parameters<typeof saveProgressEvent>) => void;
 
-const REWARD_EMOJI: Record<string, string> = {
-  calm: "🧘", draw: "🎨", water: "🥤", stretch: "🤸", eyes: "😌", music: "🎵",
+const REWARD_IMG: Record<string, string> = {
+  calm:    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20in%20lotus%20position/3D/person_in_lotus_position_3d.png",
+  draw:    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Artist%20palette/3D/artist_palette_3d.png",
+  water:   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cup%20with%20straw/3D/cup_with_straw_3d.png",
+  stretch: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20cartwheeling/3D/person_cartwheeling_3d.png",
+  eyes:    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Relieved%20face/3D/relieved_face_3d.png",
+  music:   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Musical%20note/3D/musical_note_3d.png",
 };
 
 function getCorrectAnswer(ex: MathExercise): number {
@@ -329,9 +334,12 @@ function FuentesTab({
           Al terminar
         </p>
         <div className="mt-2 flex items-center gap-3">
-          <span className="select-none text-2xl">
-            {REWARD_EMOJI[task.rewardIcon] ?? "🎁"}
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
+            alt={task.rewardIcon}
+            className="h-10 w-10 shrink-0 object-contain"
+          />
           <p className="font-black text-amiko-ink">{task.reward}</p>
         </div>
       </div>
@@ -474,7 +482,8 @@ function RecursosTab({
           {task.tutorNote && (
             <div className="mb-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
-                <span className="select-none text-base">👩‍🏫</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://img.icons8.com/3d-fluency/94/teacher.png" alt="" className="h-5 w-5 object-contain" />
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-blue">
                   Nota de tu tutor
                 </p>
@@ -514,7 +523,8 @@ function RecursosTab({
                 : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
             }`}
           >
-            <span className="select-none text-base">💡</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://img.icons8.com/3d-fluency/94/idea.png" alt="" className="h-5 w-5 object-contain" />
             {hintLevel === 0
               ? "Pedir una pista"
               : hintLevel < 3
@@ -535,7 +545,12 @@ function RecursosTab({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="select-none text-lg">{unlocked ? "💡" : "🔒"}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={unlocked ? "https://img.icons8.com/3d-fluency/94/idea.png" : "https://img.icons8.com/3d-fluency/94/lock.png"}
+                      alt=""
+                      className="h-5 w-5 object-contain"
+                    />
                     <span
                       className={`text-sm font-black ${
                         unlocked ? "text-amber-800" : "text-slate-400"
@@ -712,13 +727,14 @@ function DoneScreen({
     <div className={`${SHELL} bg-gradient-to-b from-[#FFF8E8] via-[#ECF6D0] to-[#E8F4FD]`}>
       {/* 6 floating stars — only animated on task completion */}
       {CELEBRATION_SPARKLES.map((style, i) => (
-        <span
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
           key={i}
-          className="pointer-events-none absolute select-none text-2xl animate-sparkle"
+          src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Glowing%20star/3D/glowing_star_3d.png"
+          alt=""
+          className="pointer-events-none absolute h-8 w-8 animate-sparkle object-contain"
           style={style}
-        >
-          ⭐
-        </span>
+        />
       ))}
 
       {/* Scrollable content */}
@@ -764,7 +780,12 @@ function DoneScreen({
           className="mt-5 flex w-full max-w-xs animate-slide-up items-center gap-4 rounded-3xl bg-white px-6 py-4 shadow-card"
           style={{ animationDelay: "0.8s" }}
         >
-          <span className="select-none text-3xl">{REWARD_EMOJI[task.rewardIcon] ?? "🎁"}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
+            alt={task.rewardIcon}
+            className="h-12 w-12 shrink-0 object-contain"
+          />
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-green">
               Ahora puedes
@@ -783,9 +804,9 @@ function DoneScreen({
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
-                  { key: "bien",    emoji: "😊", label: "Bien"        },
-                  { key: "regular", emoji: "😐", label: "Más o menos" },
-                  { key: "difícil", emoji: "😓", label: "Difícil"     },
+                  { key: "bien",    imgUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Smiling%20face%20with%20smiling%20eyes/3D/smiling_face_with_smiling_eyes_3d.png", label: "Bien"        },
+                  { key: "regular", imgUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Neutral%20face/3D/neutral_face_3d.png",                                                                                  label: "Más o menos" },
+                  { key: "difícil", imgUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Downcast%20face%20with%20sweat/3D/downcast_face_with_sweat_3d.png",                                                     label: "Difícil"     },
                 ] as const
               ).map((opt) => (
                 <button
@@ -794,7 +815,8 @@ function DoneScreen({
                   onClick={() => setEmotion(opt.key)}
                   className="flex flex-col items-center gap-1 rounded-2xl border border-slate-100 p-3 transition hover:bg-amiko-sky active:scale-95"
                 >
-                  <span className="select-none text-3xl">{opt.emoji}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={opt.imgUrl} alt={opt.label} className="h-9 w-9 object-contain" />
                   <span className="text-[10px] font-black text-amiko-muted">{opt.label}</span>
                 </button>
               ))}
@@ -821,7 +843,9 @@ function DoneScreen({
             onClick={onViewActivities}
             className="min-h-12 rounded-full bg-amiko-blue px-6 text-sm font-black text-white shadow-card transition hover:brightness-95"
           >
-            ✨ Ver actividades de cierre
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sparkles/3D/sparkles_3d.png" alt="" className="inline h-5 w-5 object-contain" />
+            {" "}Ver actividades de cierre
           </button>
           <button
             type="button"
@@ -966,9 +990,12 @@ export function StudentTaskWorkspace({
               Al terminar te espera
             </p>
             <div className="mt-3 flex items-center gap-4">
-              <span className="select-none text-3xl">
-                {REWARD_EMOJI[task.rewardIcon] ?? "🎁"}
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
+                alt={task.rewardIcon}
+                className="h-12 w-12 shrink-0 object-contain"
+              />
               <p className="text-xl font-black text-amiko-ink">{task.reward}</p>
             </div>
           </div>

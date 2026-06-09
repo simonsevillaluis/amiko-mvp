@@ -6,13 +6,13 @@ import { StudentAvatar } from "@/components/student-portal-icons";
 import { saveProgressEvent } from "@/lib/local-progress";
 import { supportContacts } from "@/lib/student-mock-data";
 
-const roleEmoji: Record<string, string> = {
-  Madre: "💙",
-  Padre: "💙",
-  Abuela: "💛",
-  Abuelo: "💛",
-  Docente: "📚",
-  Tutor: "🎓",
+const roleImg: Record<string, string> = {
+  Madre:   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Blue%20heart/3D/blue_heart_3d.png",
+  Padre:   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Blue%20heart/3D/blue_heart_3d.png",
+  Abuela:  "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Yellow%20heart/3D/yellow_heart_3d.png",
+  Abuelo:  "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Yellow%20heart/3D/yellow_heart_3d.png",
+  Docente: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Books/3D/books_3d.png",
+  Tutor:   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Graduation%20cap/3D/graduation_cap_3d.png",
 };
 
 export default function DemoMiRedPage() {
@@ -44,7 +44,9 @@ export default function DemoMiRedPage() {
       {/* Intro */}
       <div className="mb-5 rounded-[22px] bg-gradient-to-br from-amiko-sky to-amiko-mint px-5 py-4 shadow-sm">
         <p className="text-sm font-black leading-6 text-amiko-navy">
-          Estas personas están aquí para acompañarte. 💛
+          Estas personas están aquí para acompañarte.{" "}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Yellow%20heart/3D/yellow_heart_3d.png" alt="" className="inline h-5 w-5 object-contain align-text-bottom" />
         </p>
       </div>
 
@@ -60,8 +62,14 @@ export default function DemoMiRedPage() {
               <h3 className="truncate text-base font-black text-amiko-ink">
                 {contact.name}
               </h3>
-              <p className="text-sm font-bold text-amiko-muted">
-                {roleEmoji[contact.role] ?? "👤"} {contact.role}
+              <p className="flex items-center gap-1.5 text-sm font-bold text-amiko-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={roleImg[contact.role] ?? "https://img.icons8.com/3d-fluency/94/user.png"}
+                  alt=""
+                  className="h-4 w-4 object-contain"
+                />
+                {contact.role}
               </p>
             </div>
             <button

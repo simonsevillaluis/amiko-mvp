@@ -71,6 +71,12 @@ export function clearProgressEvents(): void {
   }
 }
 
+export function resetTaskProgress(taskId: string): void {
+  if (typeof window === "undefined") return;
+  const events = getProgressEvents().filter((e) => e.taskId !== taskId);
+  localStorage.setItem(getKeys().storageKey, JSON.stringify(events));
+}
+
 export function getAggregatedMetrics() {
   const events = getProgressEvents();
 

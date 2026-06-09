@@ -17,13 +17,14 @@ import {
 import {
   getProgressEvents,
   markCheckinDone,
+  resetTaskProgress,
   saveProgressEvent,
   shouldShowCheckin,
 } from "@/lib/local-progress";
 import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
 
-type StudentView = "home" | "task-assigned" | "task-own";
+type StudentView = "home" | "task-assigned" | "task-own" | "history";
 
 function EmotionalCheckin({ onComplete }: { onComplete: () => void }) {
   return (
@@ -106,6 +107,56 @@ const getSubjectStyles = (icon: string) => {
   }
 };
 
+function getStatusConfig(status: TaskStatus) {
+  switch (status) {
+    case "en_progreso":
+      return {
+        label: "En progreso",
+        badgeBg: "bg-blue-100 text-blue-700",
+        dotColor: "bg-blue-500 animate-pulse",
+        actionLabel: "Continuar",
+        actionBg: "bg-blue-600 text-white shadow-sm",
+        actionIcon: "play" as const,
+        emojiUrl: "https://img.icons8.com/3d-fluency/94/rocket.png",
+        message: "¡Vas muy bien!",
+      };
+    case "ayuda_solicitada":
+      return {
+        label: "Pedir ayuda",
+        badgeBg: "bg-amber-100 text-amber-700",
+        dotColor: "bg-amber-500",
+        actionLabel: "Revisar",
+        actionBg: "bg-amber-500 text-white shadow-sm",
+        actionIcon: "help" as const,
+        emojiUrl: "https://img.icons8.com/3d-fluency/94/idea.png",
+        message: "Revisemos juntos.",
+      };
+    case "terminada":
+      return {
+        label: "Terminada",
+        badgeBg: "bg-emerald-100 text-emerald-700",
+        dotColor: "bg-emerald-500",
+        actionLabel: "Repasar",
+        actionBg: "bg-slate-100 text-slate-600",
+        actionIcon: "check" as const,
+        emojiUrl: "https://img.icons8.com/3d-fluency/94/trophy.png",
+        message: "¡Lo lograste!",
+      };
+    case "por_empezar":
+    default:
+      return {
+        label: "Por empezar",
+        badgeBg: "bg-slate-100 text-slate-600",
+        dotColor: "bg-slate-400",
+        actionLabel: "Vamos",
+        actionBg: "bg-amiko-green text-white shadow-sm",
+        actionIcon: "play" as const,
+        emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Chequered%20flag/3D/chequered_flag_3d.png",
+        message: "¡Empecemos!",
+      };
+  }
+}
+
 function TaskCard({
   task,
   progress = 0,
@@ -118,100 +169,39 @@ function TaskCard({
   onSelect: () => void;
 }) {
   const subjectStyles = getSubjectStyles(task.icon);
-
-  const getStatusConfig = () => {
-    switch (status) {
-      case "en_progreso":
-        return {
-          label: "En progreso",
-          badgeBg: "bg-blue-100 text-blue-800 border border-blue-200/50",
-          dotColor: "bg-blue-500 animate-pulse",
-          actionLabel: "Continuar",
-          actionBg: "bg-blue-600 hover:bg-blue-700 text-white active:scale-95 shadow-sm hover:shadow",
-          actionIcon: "play" as const,
-          emojiUrl: "https://img.icons8.com/3d-fluency/94/rocket.png",
-          message: "¡Vas muy bien! Continuemos."
-        };
-      case "ayuda_solicitada":
-        return {
-          label: "Necesito ayuda",
-          badgeBg: "bg-amber-100 text-amber-800 border border-amber-200/50",
-          dotColor: "bg-amber-500",
-          actionLabel: "Revisar",
-          actionBg: "bg-amber-500 hover:bg-amber-600 text-white active:scale-95 shadow-sm hover:shadow",
-          actionIcon: "help" as const,
-          emojiUrl: "https://img.icons8.com/3d-fluency/94/idea.png",
-          message: "Pediste ayuda. Revisemos juntos."
-        };
-      case "terminada":
-        return {
-          label: "Terminada",
-          badgeBg: "bg-emerald-100 text-emerald-800 border border-emerald-200/50",
-          dotColor: "bg-emerald-500",
-          actionLabel: "Repasar",
-          actionBg: "bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 shadow-sm",
-          actionIcon: "check" as const,
-          emojiUrl: "https://img.icons8.com/3d-fluency/94/trophy.png",
-          message: "¡Lo lograste! Excelente trabajo."
-        };
-      case "por_empezar":
-      default:
-        return {
-          label: "Por empezar",
-          badgeBg: "bg-slate-100 text-slate-700 border border-slate-200/50",
-          dotColor: "bg-slate-400",
-          actionLabel: "Vamos",
-          actionBg: "bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-sm hover:shadow",
-          actionIcon: "play" as const,
-          emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Chequered%20flag/3D/chequered_flag_3d.png",
-          message: "¡Empecemos juntos!"
-        };
-    }
-  };
-
-  const config = getStatusConfig();
+  const config = getStatusConfig(status);
 
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`focus-ring w-full rounded-[24px] border-2 ${subjectStyles.bg} p-5 text-left shadow-card transition-all duration-300 hover:scale-[1.01] hover:shadow-soft active:scale-[0.99] bg-white flex flex-col gap-4`}
+      className={`focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 ${subjectStyles.bg} bg-white p-4 text-left shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3`}
     >
-      {/* Fila Superior: Icono de Materia, Título de la tarea y 3D Emoji */}
-      <div className="flex items-start justify-between w-full gap-2">
-        <div className="flex items-center gap-4 min-w-0">
-          <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] shadow-sm ${subjectStyles.iconBg} bg-white/70 p-1.5`}>
+      {/* Icon + subject + status emoji */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] shadow-sm ${subjectStyles.iconBg} bg-white/70 p-1`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={subjectStyles.iconUrl} alt={task.subject} className="h-10 w-10 object-contain" />
+            <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" />
           </span>
           <div className="min-w-0">
-            <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-amiko-muted">
-              {task.subject}
-            </span>
-            <span className="block mt-0.5 text-lg font-black leading-tight text-amiko-ink truncate">
-              {task.title}
-            </span>
+            <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">{task.subject}</span>
+            <span className="block mt-0.5 text-sm font-black leading-snug text-amiko-ink line-clamp-2">{task.title}</span>
           </div>
         </div>
-        
-        {/* 3D Emoji Container */}
-        <div className="h-12 w-12 shrink-0 flex items-center justify-center select-none bg-white/80 rounded-2xl p-1 shadow-sm border border-slate-100/40">
+        <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white/80 border border-slate-100/40 p-0.5 shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={config.emojiUrl}
-            alt={config.label}
-            className="h-10 w-10 object-contain"
-          />
+          <img src={config.emojiUrl} alt={config.label} className="h-7 w-7 object-contain" />
         </div>
       </div>
 
-      {/* Fila Media: Barra de Progreso y Mensaje Motivador */}
-      <div className="w-full space-y-2">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-          <span className="text-amiko-muted">{config.message}</span>
-          <span className="font-black text-amiko-ink bg-slate-100 px-2 py-0.5 rounded-md">{progress}%</span>
+      {/* Progress bar */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-amiko-muted">{config.message}</span>
+          <span className="text-[10px] font-black text-amiko-ink bg-slate-100 px-1.5 py-0.5 rounded">{progress}%</span>
         </div>
-        <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden shadow-inner p-[2px]">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner">
           <div
             className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${subjectStyles.barColor}`}
             style={{ width: `${progress}%` }}
@@ -219,19 +209,115 @@ function TaskCard({
         </div>
       </div>
 
-      {/* Fila Inferior: Badge de Estado y Botón de Acción */}
-      <div className="flex items-center justify-between w-full pt-1">
-        <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${config.badgeBg}`}>
-          <span className={`h-2.5 w-2.5 rounded-full ${config.dotColor}`} />
+      {/* Status badge + action */}
+      <div className="flex items-center justify-between gap-2">
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black ${config.badgeBg}`}>
+          <span className={`h-2 w-2 rounded-full ${config.dotColor}`} />
           {config.label}
         </span>
-        
-        <span className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-6 text-sm font-black shadow-md transition-all duration-200 ${config.actionBg}`}>
+        <span className={`inline-flex min-h-9 items-center gap-1 rounded-full px-4 text-xs font-black transition-all duration-200 ${config.actionBg}`}>
           {config.actionLabel}
-          <AmikoIcon name={config.actionIcon} className="h-4 w-4" />
+          <AmikoIcon name={config.actionIcon} className="h-3.5 w-3.5" />
         </span>
       </div>
     </button>
+  );
+}
+
+const HISTORY_OVERLAY =
+  "fixed inset-0 z-[60] flex flex-col overflow-hidden bg-white sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2 sm:shadow-[0_24px_80px_rgba(9,54,124,0.24)]";
+
+function TaskHistoryView({
+  tasks,
+  progressMap,
+  onRepeat,
+  onBack,
+}: {
+  tasks: StudentPortalTask[];
+  progressMap: Record<string, { progress: number; status: TaskStatus }>;
+  onRepeat: (task: StudentPortalTask) => void;
+  onBack: () => void;
+}) {
+  const completedTasks = tasks.filter((t) => progressMap[t.id]?.status === "terminada");
+
+  return (
+    <div className={HISTORY_OVERLAY}>
+      {/* Header */}
+      <header className="shrink-0 border-b border-slate-100 bg-white px-4 py-3">
+        <div className="grid grid-cols-[40px_1fr_40px] items-center gap-3">
+          <button
+            type="button"
+            aria-label="Volver"
+            onClick={onBack}
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full text-amiko-navy transition hover:bg-amiko-sky"
+          >
+            <AmikoIcon name="back" className="h-6 w-6" />
+          </button>
+          <div className="flex items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://img.icons8.com/3d-fluency/94/trophy.png"
+              alt=""
+              className="h-7 w-7 object-contain"
+            />
+            <h1 className="text-lg font-black text-amiko-navy">Historial</h1>
+          </div>
+          <div />
+        </div>
+      </header>
+
+      {/* Content */}
+      <section className="flex-1 overflow-y-auto px-4 py-5">
+        {completedTasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://img.icons8.com/3d-fluency/94/checklist.png"
+              alt=""
+              className="h-16 w-16 object-contain opacity-50"
+            />
+            <p className="text-base font-black text-amiko-muted">Todavía no hay tareas completadas.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="mb-4 text-sm font-bold text-amiko-muted">
+              {completedTasks.length} tarea{completedTasks.length > 1 ? "s" : ""} completada{completedTasks.length > 1 ? "s" : ""} — podés repetirlas cuando quieras.
+            </p>
+            {completedTasks.map((task) => {
+              const subjectStyles = getSubjectStyles(task.icon);
+              return (
+                <div
+                  key={task.id}
+                  className={`flex items-center gap-4 rounded-[22px] border-2 ${subjectStyles.bg} bg-white p-4 shadow-card`}
+                >
+                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] shadow-sm ${subjectStyles.iconBg} bg-white/70 p-1`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">{task.subject}</span>
+                    <span className="block mt-0.5 text-sm font-black leading-snug text-amiko-ink line-clamp-2">{task.title}</span>
+                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black text-emerald-700">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      Completada
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRepeat(task)}
+                    className="focus-ring flex shrink-0 min-h-10 items-center gap-1.5 rounded-full bg-amiko-green px-4 text-xs font-black text-white shadow-sm transition active:scale-95"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="https://img.icons8.com/3d-fluency/94/recurring-appointment.png" alt="" className="h-4 w-4 object-contain" />
+                    Repetir
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -287,6 +373,29 @@ export default function DemoStudentPortalPage() {
     setTaskProgressMap(map);
   }, [view]);
 
+  const handleRepeatTask = useCallback((task: StudentPortalTask) => {
+    resetTaskProgress(task.id);
+    setTaskProgressMap((prev) => {
+      const next = { ...prev };
+      delete next[task.id];
+      return next;
+    });
+    if (soundSettings.canPlay()) playSound("tap");
+    setSelectedTask(task);
+    setView("task-assigned");
+  }, []);
+
+  if (view === "history") {
+    return (
+      <TaskHistoryView
+        tasks={studentPortalTasks}
+        progressMap={taskProgressMap}
+        onRepeat={handleRepeatTask}
+        onBack={() => setView("home")}
+      />
+    );
+  }
+
   if (view === "task-assigned" && selectedTask) {
     return (
       <StudentTaskWorkspace
@@ -322,24 +431,63 @@ export default function DemoStudentPortalPage() {
             de tu tutor
           </span>
         </div>
-        <div className="space-y-4">
-          {studentPortalTasks.map((task) => {
-            const statusInfo = taskProgressMap[task.id] || { progress: 0, status: "por_empezar" as const };
-            return (
-              <TaskCard
-                key={task.id}
-                task={task}
-                progress={statusInfo.progress}
-                status={statusInfo.status}
-                onSelect={() => {
-                  if (soundSettings.canPlay()) playSound("tap");
-                  setSelectedTask(task);
-                  setView("task-assigned");
-                }}
-              />
-            );
-          })}
+        {/* Horizontal snap scroll — hides completed tasks */}
+        <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-3 px-4 snap-x snap-mandatory">
+            {studentPortalTasks
+              .filter((task) => (taskProgressMap[task.id]?.status ?? "por_empezar") !== "terminada")
+              .map((task) => {
+                const statusInfo = taskProgressMap[task.id] || { progress: 0, status: "por_empezar" as const };
+                return (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    progress={statusInfo.progress}
+                    status={statusInfo.status}
+                    onSelect={() => {
+                      if (soundSettings.canPlay()) playSound("tap");
+                      setSelectedTask(task);
+                      setView("task-assigned");
+                    }}
+                  />
+                );
+              })}
+            {/* Completed tasks peek card */}
+            {(() => {
+              const doneCount = studentPortalTasks.filter(
+                (t) => taskProgressMap[t.id]?.status === "terminada"
+              ).length;
+              return doneCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setView("history")}
+                  className="focus-ring w-[160px] shrink-0 snap-start flex flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-emerald-200 bg-emerald-50/40 p-4 text-center transition active:scale-95 hover:border-emerald-300 hover:bg-emerald-50"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://img.icons8.com/3d-fluency/94/trophy.png"
+                    alt=""
+                    className="h-12 w-12 object-contain"
+                  />
+                  <p className="text-xs font-black text-amiko-ink">{doneCount} terminada{doneCount > 1 ? "s" : ""}</p>
+                  <p className="text-[10px] font-bold text-amiko-green leading-snug">Ver historial →</p>
+                </button>
+              ) : null;
+            })()}
+          </div>
         </div>
+        {/* "Ver más" link shown when all visible tasks are done */}
+        {studentPortalTasks.every((t) => taskProgressMap[t.id]?.status === "terminada") && (
+          <button
+            type="button"
+            onClick={() => setView("history")}
+            className="focus-ring mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 py-3 text-xs font-black text-amiko-green transition hover:bg-emerald-100 active:scale-95"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" alt="" className="h-5 w-5 object-contain" />
+            ¡Completaste todo! Ver historial
+          </button>
+        )}
       </section>
 
       {/* ── Mis estudios (creados por el estudiante) ──────────────────────── */}
