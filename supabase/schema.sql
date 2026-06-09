@@ -252,7 +252,7 @@ begin
       else null
     end,
     coalesce(new.raw_app_meta_data ->> 'provider', 'email'),
-    new.raw_user_meta_data ->> 'role' in ('parent', 'caregiver', 'professional'),
+    coalesce(new.raw_user_meta_data ->> 'role' in ('parent', 'caregiver', 'professional'), false),
     false
   )
   on conflict (id) do update
