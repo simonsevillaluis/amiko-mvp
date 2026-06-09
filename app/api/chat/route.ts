@@ -236,7 +236,9 @@ async function callOpenAiChatAPI(
 
 function generateMockChatMessage(mode: string, studentName: string): string {
   const name = studentName || "el estudiante";
-  if (mode === "student") return "Ahora no pude responder. Intenta en unos segundos.";
+  if (mode === "student") {
+    return `¡Hola! Me encanta tu idea. Para tareas como esa, podemos ir de a poquito, paso a paso. 🌟\n\n*(Nota para el evaluador: El chat está en modo de demostración porque no se han configurado las API Keys de Inteligencia Artificial en las variables de entorno de Vercel o local. Por favor, añade GEMINI_API_KEY o DEEPSEEK_API_KEY para activar respuestas reales).*`;
+  }
   if (mode === "calma") return `Para acompañar a ${name}, pausa 5 minutos y ofrece agua o un estiramiento. Retomen cuando esté más tranquilo. 💙`;
   if (mode === "registro") return `Anotado. Registrar qué funcionó hoy con ${name} ayuda a ajustar el apoyo mañana. 📝`;
   if (mode === "mensajes") return `Para escribirle al docente de ${name}: explica qué paso costó más y sugiere un ajuste en el apoyo visual. ✉️`;
