@@ -6,17 +6,20 @@ import { ArasaacPictogram } from "@/components/arasaac-pictogram";
 import { AmikoMark, StudentPortalIcon } from "@/components/student-portal-icons";
 import {
   breakActivities,
+  studentPortalStudent,
   type MathExercise,
   type StudentPortalTask,
 } from "@/lib/student-mock-data";
 import { saveProgressEvent } from "@/lib/local-progress";
+import { playSound } from "@/lib/sounds";
+import { soundSettings } from "@/lib/student-sound-settings";
 
 // z-[60] > StudentShell nav (z-40) — covers fixed bottom nav while task is open
 const SHELL =
   "fixed inset-0 z-[60] flex flex-col overflow-hidden text-amiko-ink sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2 sm:shadow-[0_24px_80px_rgba(9,54,124,0.24)] sm:ring-1 sm:ring-white/70";
 
 type Phase = "ready" | "workspace" | "done";
-type WorkspaceTab = "fuentes" | "amiko" | "recursos";
+type WorkspaceTab = "pasos" | "amiko" | "recursos";
 type SaveFn = (...args: Parameters<typeof saveProgressEvent>) => void;
 
 const REWARD_EMOJI: Record<string, string> = {
@@ -54,10 +57,10 @@ function WorkspaceTabBar({
   active: WorkspaceTab;
   onChange: (t: WorkspaceTab) => void;
 }) {
-  const tabs: { id: WorkspaceTab; emoji: string; label: string }[] = [
-    { id: "fuentes",  emoji: "📚", label: "Fuentes"  },
-    { id: "amiko",    emoji: "💬", label: "Amiko"    },
-    { id: "recursos", emoji: "🎯", label: "Recursos" },
+  const tabs: { id: WorkspaceTab; imgUrl?: string; label: string }[] = [
+    { id: "pasos",    imgUrl: "https://img.icons8.com/3d-fluency/94/clipboard.png", label: "Pasos"    },
+    { id: "amiko",                                                                   label: "Amiko"    },
+    { id: "recursos", imgUrl: "https://img.icons8.com/3d-fluency/94/toolbox.png",   label: "Recursos" },
   ];
   return (
     <nav className="shrink-0 border-t border-slate-100 bg-white">
@@ -68,7 +71,7 @@ function WorkspaceTabBar({
             <button
               key={tab.id}
               type="button"
-              onClick={() => onChange(tab.id)}
+              onClick={() => { onChange(tab.id); if (soundSettings.canPlay()) playSound("tap"); }}
               aria-pressed={on}
               className="flex flex-col items-center gap-0.5 py-2 transition"
             >
@@ -77,7 +80,12 @@ function WorkspaceTabBar({
                   on ? "bg-amiko-mint" : ""
                 }`}
               >
-                <span className="select-none text-base leading-none">{tab.emoji}</span>
+                {tab.imgUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={tab.imgUrl} alt={tab.label} className="h-6 w-6 object-contain" />
+                ) : (
+                  <AmikoMark className="h-6 w-6" />
+                )}
               </span>
               <span
                 className={`text-[10px] font-black ${on ? "text-amiko-green" : "text-amiko-muted"}`}
@@ -218,7 +226,7 @@ function MathColumn({
   );
 }
 
-// ─── TAB: FUENTES ─────────────────────────────────────────────────────────────
+// ─── TAB: PASOS ───────────────────────────────────────────────────────────────
 
 function FuentesTab({
   task,
@@ -232,10 +240,10 @@ function FuentesTab({
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#F7F9FC] px-5 py-4">
-      <div className="mb-3 flex items-center gap-2 rounded-2xl bg-amiko-sky/60 px-4 py-2.5">
-        <span className="select-none text-sm">🔒</span>
-        <p className="text-xs font-black text-amiko-navy">
-          Asignado por tu tutor · Solo lectura
+      <div className="mb-3 flex items-center gap-2 rounded-2xl bg-amiko-mint/60 px-4 py-2.5">
+        <span className="select-none text-sm">👩‍🏫</span>
+        <p className="text-xs font-black text-amiko-green">
+          Tu tutor preparó esta tarea para ti
         </p>
       </div>
 
@@ -342,7 +350,6 @@ function AmikoTab({
   isCorrect,
   onAnswerChange,
   onRevisar,
-  onNoEntendi,
   onNext,
   onGoToRecursos,
 }: {
@@ -354,7 +361,6 @@ function AmikoTab({
   isCorrect: boolean;
   onAnswerChange: (v: string) => void;
   onRevisar: () => void;
-  onNoEntendi: () => void;
   onNext: () => void;
   onGoToRecursos: () => void;
 }) {
@@ -425,24 +431,13 @@ function AmikoTab({
 
       {/* Actions */}
       {!(checked && isCorrect) && (
-        <div className="shrink-0 space-y-2 px-5 pb-4 pt-1">
+        <div className="shrink-0 px-5 pb-4 pt-1">
           <button
             type="button"
             onClick={onRevisar}
             className="flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue text-lg font-black text-white shadow-card transition active:scale-95"
           >
             Revisar
-          </button>
-          <button
-            type="button"
-            onClick={onNoEntendi}
-            className="min-h-11 w-full rounded-full border-2 border-amber-200 bg-amber-50 text-sm font-black text-amber-800 transition hover:bg-amber-100 active:scale-95"
-          >
-            {hintLevel === 0
-              ? "No entendí"
-              : hintLevel < 3
-                ? "Necesito otra pista"
-                : "Ver la solución"}
           </button>
         </div>
       )}
@@ -457,11 +452,13 @@ function RecursosTab({
   ex,
   hintLevel,
   taskDone,
+  onNoEntendi,
 }: {
   task: StudentPortalTask;
   ex: MathExercise;
   hintLevel: number;
   taskDone: boolean;
+  onNoEntendi: () => void;
 }) {
   // Keywords: tutor-defined > operator-derived fallback
   const opKeyword  = ex.operator === "+" ? "suma" : "resta";
@@ -504,8 +501,26 @@ function RecursosTab({
             Pistas
           </p>
           <p className="mb-3 text-[10px] font-bold text-amiko-muted">
-            Cada vez que tocás &quot;No entendí&quot; en Amiko, se desbloquea una pista.
+            ¿Te trabaste en este paso? Puedes pedir pistas para que te ayuden:
           </p>
+
+          <button
+            type="button"
+            onClick={onNoEntendi}
+            disabled={hintLevel >= 3}
+            className={`mb-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 text-sm font-black transition active:scale-95 ${
+              hintLevel >= 3
+                ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+            }`}
+          >
+            <span className="select-none text-base">💡</span>
+            {hintLevel === 0
+              ? "Pedir una pista"
+              : hintLevel < 3
+                ? "Necesito otra pista"
+                : "¡Todas las pistas reveladas!"}
+          </button>
 
           <div className="space-y-2">
             {ex.hints.map((hint, i) => {
@@ -668,84 +683,154 @@ function PauseOverlay({
 }
 
 // ─── Done screen ──────────────────────────────────────────────────────────────
+// Animated celebration screen. Only this screen uses animate-celebrate-pop,
+// animate-sparkle, and animate-slide-up — all other icons in the app are static.
+
+const CELEBRATION_SPARKLES = [
+  { top: "8%",  left: "6%",   animationDelay: "0s"    },
+  { top: "14%", right: "7%",  animationDelay: "0.45s" },
+  { top: "5%",  left: "44%",  animationDelay: "0.9s"  },
+  { top: "32%", right: "5%",  animationDelay: "0.25s" },
+  { top: "36%", left: "4%",   animationDelay: "1.1s"  },
+  { top: "22%", left: "18%",  animationDelay: "0.65s" },
+];
 
 function DoneScreen({
   task,
+  studentName,
   onViewActivities,
   onExit,
 }: {
   task: StudentPortalTask;
+  studentName: string;
   onViewActivities: () => void;
   onExit: () => void;
 }) {
   const [emotion, setEmotion] = useState<"bien" | "regular" | "difícil" | null>(null);
-  return (
-    <div
-      className={`${SHELL} items-center justify-center bg-gradient-to-b from-[#FFF8E8] via-[#ECF6D0] to-[#E8F4FD] px-6`}
-    >
-      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-soft">
-        <AmikoIcon name="check" className="h-12 w-12 text-amiko-green" />
-      </div>
-      <h1 className="mt-6 text-4xl font-black text-amiko-ink">Lo lograste</h1>
-      <p className="mt-2 text-center text-base font-bold text-amiko-muted">
-        Terminaste todos los ejercicios de {task.title}.
-      </p>
-      <div className="mt-5 flex items-center gap-4 rounded-3xl bg-white px-6 py-4 shadow-card">
-        <span className="select-none text-3xl">{REWARD_EMOJI[task.rewardIcon] ?? "🎁"}</span>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-green">
-            Ahora puedes
-          </p>
-          <p className="text-xl font-black text-amiko-ink">{task.reward}</p>
-        </div>
-      </div>
 
-      {!emotion ? (
-        <div className="mt-6 w-full max-w-xs rounded-3xl bg-white p-5 shadow-card">
-          <p className="mb-3 text-center text-sm font-black text-amiko-ink">¿Cómo te fue?</p>
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { key: "bien",    emoji: "😊", label: "Bien"        },
-                { key: "regular", emoji: "😐", label: "Más o menos" },
-                { key: "difícil", emoji: "😓", label: "Difícil"     },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setEmotion(opt.key)}
-                className="flex flex-col items-center gap-1 rounded-2xl border border-slate-100 p-3 transition hover:bg-amiko-sky active:scale-95"
-              >
-                <span className="select-none text-3xl">{opt.emoji}</span>
-                <span className="text-[10px] font-black text-amiko-muted">{opt.label}</span>
-              </button>
-            ))}
+  return (
+    <div className={`${SHELL} bg-gradient-to-b from-[#FFF8E8] via-[#ECF6D0] to-[#E8F4FD]`}>
+      {/* 6 floating stars — only animated on task completion */}
+      {CELEBRATION_SPARKLES.map((style, i) => (
+        <span
+          key={i}
+          className="pointer-events-none absolute select-none text-2xl animate-sparkle"
+          style={style}
+        >
+          ⭐
+        </span>
+      ))}
+
+      {/* Scrollable content */}
+      <div className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-10">
+
+        {/* AmikoMark — pop animation, ping ring behind */}
+        <div className="relative shrink-0">
+          <div className="absolute inset-[-10px] animate-ping rounded-full bg-amiko-green/15" />
+          <AmikoMark className="relative h-28 w-28 animate-celebrate-pop" />
+        </div>
+
+        {/* Trophy 3D */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png"
+          alt="Trofeo"
+          className="mt-2 h-16 w-16 animate-slide-up object-contain"
+          style={{ animationDelay: "0.2s" }}
+        />
+
+        {/* Congratulations */}
+        <h1
+          className="mt-4 animate-slide-up text-center text-3xl font-black leading-tight text-amiko-ink"
+          style={{ animationDelay: "0.35s" }}
+        >
+          ¡Felicitaciones,
+        </h1>
+        <p
+          className="animate-slide-up text-center text-4xl font-black text-amiko-green"
+          style={{ animationDelay: "0.5s" }}
+        >
+          {studentName}!
+        </p>
+        <p
+          className="mt-2 animate-slide-up text-center text-base font-bold text-amiko-muted"
+          style={{ animationDelay: "0.65s" }}
+        >
+          Terminaste todos los ejercicios de {task.title}.
+        </p>
+
+        {/* Reward */}
+        <div
+          className="mt-5 flex w-full max-w-xs animate-slide-up items-center gap-4 rounded-3xl bg-white px-6 py-4 shadow-card"
+          style={{ animationDelay: "0.8s" }}
+        >
+          <span className="select-none text-3xl">{REWARD_EMOJI[task.rewardIcon] ?? "🎁"}</span>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-green">
+              Ahora puedes
+            </p>
+            <p className="text-xl font-black text-amiko-ink">{task.reward}</p>
           </div>
         </div>
-      ) : (
-        <p className="mt-6 rounded-3xl bg-white px-6 py-4 text-center text-sm font-black text-amiko-ink shadow-card">
-          {emotion === "bien"    ? "¡Qué bueno! Lo registramos."    : ""}
-          {emotion === "regular" ? "Gracias por contarme. Seguimos." : ""}
-          {emotion === "difícil" ? "Gracias. Tu tutor lo verá."      : ""}
-        </p>
-      )}
 
-      <div className="mt-6 flex w-full max-w-xs flex-col gap-3">
-        <button
-          type="button"
-          onClick={onViewActivities}
-          className="min-h-12 rounded-full bg-amiko-blue px-6 text-sm font-black text-white shadow-card transition hover:brightness-95"
+        {/* Emotion check-in */}
+        {!emotion ? (
+          <div
+            className="mt-6 w-full max-w-xs animate-slide-up rounded-3xl bg-white p-5 shadow-card"
+            style={{ animationDelay: "0.95s" }}
+          >
+            <p className="mb-3 text-center text-sm font-black text-amiko-ink">¿Cómo te fue?</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  { key: "bien",    emoji: "😊", label: "Bien"        },
+                  { key: "regular", emoji: "😐", label: "Más o menos" },
+                  { key: "difícil", emoji: "😓", label: "Difícil"     },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setEmotion(opt.key)}
+                  className="flex flex-col items-center gap-1 rounded-2xl border border-slate-100 p-3 transition hover:bg-amiko-sky active:scale-95"
+                >
+                  <span className="select-none text-3xl">{opt.emoji}</span>
+                  <span className="text-[10px] font-black text-amiko-muted">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p
+            className="mt-6 w-full max-w-xs animate-slide-up rounded-3xl bg-white px-6 py-4 text-center text-sm font-black text-amiko-ink shadow-card"
+            style={{ animationDelay: "0.95s" }}
+          >
+            {emotion === "bien"    ? "¡Qué bueno! Lo registramos."    : ""}
+            {emotion === "regular" ? "Gracias por contarme. Seguimos." : ""}
+            {emotion === "difícil" ? "Gracias. Tu tutor lo verá."      : ""}
+          </p>
+        )}
+
+        {/* Action buttons */}
+        <div
+          className="mt-6 flex w-full max-w-xs animate-slide-up flex-col gap-3"
+          style={{ animationDelay: "1.1s" }}
         >
-          ✨ Ver actividades de cierre
-        </button>
-        <button
-          type="button"
-          onClick={onExit}
-          className="min-h-12 rounded-full border-2 border-amiko-navy px-6 text-sm font-black text-amiko-navy transition hover:bg-amiko-sky"
-        >
-          Volver al inicio
-        </button>
+          <button
+            type="button"
+            onClick={onViewActivities}
+            className="min-h-12 rounded-full bg-amiko-blue px-6 text-sm font-black text-white shadow-card transition hover:brightness-95"
+          >
+            ✨ Ver actividades de cierre
+          </button>
+          <button
+            type="button"
+            onClick={onExit}
+            className="min-h-12 rounded-full border-2 border-amiko-navy px-6 text-sm font-black text-amiko-navy transition hover:bg-amiko-sky"
+          >
+            Volver al inicio
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -775,8 +860,8 @@ export function StudentTaskWorkspace({
   demoMode?: boolean;
 }) {
   const save = useMemo<SaveFn>(
-    () => (demoMode ? () => {} : saveProgressEvent),
-    [demoMode],
+    () => saveProgressEvent,
+    [],
   );
 
   const isMath    = task.taskType === "math" && (task.mathExercises?.length ?? 0) > 0;
@@ -806,7 +891,12 @@ export function StudentTaskWorkspace({
     const correct = Number(answer) === getCorrectAnswer(currentEx);
     setChecked(true);
     setIsCorrect(correct);
-    if (correct) save("step_completed", task.id, stepNum);
+    if (correct) {
+      save("step_completed", task.id, stepNum);
+      if (soundSettings.canPlay()) playSound("confirm");
+    } else {
+      if (soundSettings.canPlay()) playSound("tap");
+    }
   }, [answer, currentEx, save, stepNum, task.id]);
 
   const handleNoEntendi = useCallback(() => {
@@ -814,6 +904,7 @@ export function StudentTaskWorkspace({
     const next = Math.min(hintLevel + 1, 3);
     setHintLevel(next);
     save("help_requested", task.id, stepNum, `hint_${next}`);
+    if (soundSettings.canPlay()) playSound("discover");
   }, [currentEx, hintLevel, save, stepNum, task.id]);
 
   const handleNext = useCallback(() => {
@@ -821,6 +912,7 @@ export function StudentTaskWorkspace({
       save("task_completed", task.id);
       setTaskDone(true);
       setPhase("done");
+      if (soundSettings.canPlay()) playSound("celebrate");
       return;
     }
     setCurrentIdx((i) => i + 1);
@@ -884,7 +976,10 @@ export function StudentTaskWorkspace({
 
         <button
           type="button"
-          onClick={() => setPhase("workspace")}
+          onClick={() => {
+            setPhase("workspace");
+            if (soundSettings.canPlay()) playSound("tap");
+          }}
           className="mt-10 min-h-16 w-full max-w-xs rounded-full bg-amiko-green text-2xl font-black text-white shadow-card transition active:scale-95"
         >
           Vamos
@@ -899,6 +994,7 @@ export function StudentTaskWorkspace({
     return (
       <DoneScreen
         task={task}
+        studentName={studentPortalStudent.name}
         onViewActivities={() => {
           setActiveTab("recursos");
           setPhase("workspace");
@@ -945,7 +1041,7 @@ export function StudentTaskWorkspace({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col">
-        {activeTab === "fuentes" && (
+        {activeTab === "pasos" && (
           <FuentesTab task={task} currentIdx={currentIdx} />
         )}
 
@@ -959,7 +1055,6 @@ export function StudentTaskWorkspace({
             isCorrect={isCorrect}
             onAnswerChange={setAnswer}
             onRevisar={handleRevisar}
-            onNoEntendi={handleNoEntendi}
             onNext={handleNext}
             onGoToRecursos={() => setActiveTab("recursos")}
           />
@@ -972,7 +1067,13 @@ export function StudentTaskWorkspace({
         )}
 
         {activeTab === "recursos" && currentEx && (
-          <RecursosTab task={task} ex={currentEx} hintLevel={hintLevel} taskDone={taskDone} />
+          <RecursosTab
+            task={task}
+            ex={currentEx}
+            hintLevel={hintLevel}
+            taskDone={taskDone}
+            onNoEntendi={handleNoEntendi}
+          />
         )}
       </div>
 

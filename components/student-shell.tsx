@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { StudentPhoneFrame } from "@/components/student-phone-frame";
 import { StudentAvatar } from "@/components/student-portal-icons";
+import { StudentSettingsPanel } from "@/components/student-settings-panel";
 import { studentPortalStudent } from "@/lib/student-mock-data";
 
 type NavItem = {
@@ -26,6 +27,7 @@ export function StudentShell({
   basePath?: string;
 }) {
   const pathname = usePathname();
+  const [showSettings, setShowSettings] = useState(false);
 
   const navItems: NavItem[] = NAV_PATHS.map((path, index) => ({
     path: `${basePath}${path}`,
@@ -35,6 +37,8 @@ export function StudentShell({
 
   return (
     <StudentPhoneFrame>
+      {showSettings && <StudentSettingsPanel onClose={() => setShowSettings(false)} />}
+
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
         <div className="grid grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3">
           <div className="flex items-center justify-start">
@@ -59,13 +63,14 @@ export function StudentShell({
           </div>
 
           <div className="flex items-center justify-end gap-1 text-amiko-ink">
-            <Link
-              href={basePath}
+            <button
+              type="button"
+              onClick={() => setShowSettings(true)}
               className="focus-ring flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-amiko-sky"
               aria-label="Ajustes"
             >
               <AmikoIcon name="settings" className="h-5 w-5" />
-            </Link>
+            </button>
             <Link
               href={basePath}
               className="focus-ring relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-amiko-sky"

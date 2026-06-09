@@ -12,7 +12,9 @@ const protectedRoutes = [
   "/student-portal",
   "/comunidad",
   "/dashboard",
+  "/demo/student-portal",
   "/historial",
+  "/inicio",
   "/mi-dia",
   "/onboarding",
   "/professionals",
@@ -21,7 +23,6 @@ const protectedRoutes = [
   "/settings",
   "/paso-a-paso",
   // "/student-mode", // Habilitado acceso directo para pruebas de demo
-  "/student-portal",
   "/students",
   "/tasks",
 ];
@@ -91,7 +92,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && authRoutes.includes(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/inicio";
     url.search = "";
     return NextResponse.redirect(url);
   }

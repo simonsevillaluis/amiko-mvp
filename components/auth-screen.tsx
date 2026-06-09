@@ -220,7 +220,7 @@ export function LoginScreen() {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push("/dashboard");
+        router.push("/inicio");
       }
     });
   }, [router]);
@@ -263,7 +263,8 @@ export function LoginScreen() {
       }
 
       router.refresh();
-      router.push("/dashboard");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next?.startsWith("/") ? next : "/inicio");
     } catch (authError) {
       setInvalidCredentials(true);
       setFeedbackTone("error");
@@ -512,6 +513,7 @@ export function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -522,6 +524,28 @@ export function RegisterScreen() {
       }
     });
   }, [router]);
+
+  async function handleGoogleSignIn() {
+    setError("");
+    setGoogleLoading(true);
+    try {
+      const supabase = createClient();
+      const origin = window.location.origin;
+      const { error: googleError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/onboarding")}`,
+        },
+      });
+      if (googleError) {
+        setError(getAuthErrorMessage(googleError.message));
+        setGoogleLoading(false);
+      }
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError instanceof Error ? authError.message : ""));
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleSubmit() {
     setPasswordMismatch(false);
@@ -624,6 +648,16 @@ export function RegisterScreen() {
         <p className="mt-2 text-base font-bold leading-6 text-amiko-muted">
           Primero dinos quién acompaña el aprendizaje.
         </p>
+
+        <div className="mt-5">
+          <GoogleButton onClick={handleGoogleSignIn} loading={googleLoading} />
+        </div>
+
+        <div className="my-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs font-bold text-slate-400">o regístrate con correo</span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
 
         <form
           onSubmit={(e) => {

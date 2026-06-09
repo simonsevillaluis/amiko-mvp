@@ -84,7 +84,7 @@ export function TaskWorkspaceOwn({ onExit }: { onExit: () => void }) {
         </button>
 
         <div className="flex-1 px-3 text-center">
-          <p className="text-base font-black text-amiko-ink">Mi tarea</p>
+          <p className="text-base font-black text-amiko-ink">Mis estudios</p>
           <p className="text-[10px] font-bold text-amiko-muted">
             Materiales y ayuda de Amiko
           </p>

@@ -3,37 +3,56 @@
 import { AmikoIcon } from "@/components/amiko-icon";
 import { StudentPortalIcon } from "@/components/student-portal-icons";
 import { breakActivities } from "@/lib/student-mock-data";
+import { playSound } from "@/lib/sounds";
+import { soundSettings } from "@/lib/student-sound-settings";
+
+const breakActivityEmojis: Record<string, string> = {
+  water: "https://img.icons8.com/3d-fluency/94/water.png",
+  stretch: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20cartwheeling/3D/person_cartwheeling_3d.png",
+  draw: "https://img.icons8.com/3d-fluency/94/paint-palette.png",
+  eyes: "https://img.icons8.com/3d-fluency/94/sleeping.png",
+  calm: "https://img.icons8.com/3d-fluency/94/lotus.png",
+};
 
 const tools = [
   {
-    icon: "calm" as const,
     title: "Zona de calma",
     description: "Respira un momento",
-    color: "bg-amiko-sky text-amiko-blue",
+    bg: "bg-sky-50/50",
+    border: "border-sky-100/60 hover:border-sky-200/80",
+    iconBg: "bg-sky-100/80 shadow-sm",
+    emojiUrl: "https://img.icons8.com/3d-fluency/94/lotus.png",
   },
   {
-    icon: "task" as const,
     title: "Pasos",
     description: "Ver una cosa a la vez",
-    color: "bg-amiko-mint text-amiko-green",
+    bg: "bg-emerald-50/50",
+    border: "border-emerald-100/60 hover:border-emerald-200/80",
+    iconBg: "bg-emerald-100/80 shadow-sm",
+    emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png",
   },
   {
-    icon: "users" as const,
     title: "Pedir ayuda",
     description: "Avisar a tu adulto",
-    color: "bg-amiko-cream text-amiko-coral",
+    bg: "bg-orange-50/50",
+    border: "border-orange-100/60 hover:border-orange-200/80",
+    iconBg: "bg-orange-100/80 shadow-sm",
+    emojiUrl: "https://img.icons8.com/3d-fluency/94/hand.png",
   },
   {
-    icon: "draw" as const,
     title: "Dibujar",
     description: "Expresar una idea",
-    color: "bg-purple-50 text-purple-500",
+    bg: "bg-purple-50/50",
+    border: "border-purple-100/60 hover:border-purple-200/80",
+    iconBg: "bg-purple-100/80 shadow-sm",
+    emojiUrl: "https://img.icons8.com/3d-fluency/94/paint-palette.png",
   },
 ];
 
 export default function DemoRecursosPage() {
   return (
     <>
+      {/* Header */}
       <section className="mb-5 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amiko-sky text-amiko-green shadow-sm">
           <AmikoIcon name="resources" className="h-5 w-5" />
@@ -46,25 +65,33 @@ export default function DemoRecursosPage() {
         </div>
       </section>
 
-      <p className="mb-5 text-sm font-bold leading-6 text-amiko-muted">
-        Usa una ayuda cuando necesites retomar con calma.
-      </p>
+      {/* Intro card */}
+      <div className="mb-5 rounded-[22px] bg-gradient-to-br from-amiko-sky to-amiko-mint px-5 py-4 shadow-sm">
+        <p className="text-sm font-black leading-6 text-amiko-navy">
+          Usa estas herramientas cuando necesites retomar con calma. 🌱
+        </p>
+      </div>
 
-      <section className="grid grid-cols-2 gap-3">
+      {/* Tool grid */}
+      <section className="mb-7 grid grid-cols-2 gap-3">
         {tools.map((tool) => (
           <button
             key={tool.title}
             type="button"
-            className="focus-ring flex min-h-36 flex-col items-center justify-center gap-3 rounded-3xl border border-slate-100 bg-white p-4 text-center shadow-card transition active:scale-95"
+            onClick={() => {
+              if (soundSettings.canPlay()) playSound("tap");
+            }}
+            className={`focus-ring flex min-h-36 flex-col items-start justify-between rounded-[22px] border-2 ${tool.border} ${tool.bg} p-4 text-left shadow-sm transition active:scale-95`}
           >
-            <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${tool.color}`}>
-              <StudentPortalIcon name={tool.icon} className="h-8 w-8" />
+            <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${tool.iconBg} bg-white/70 p-1`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={tool.emojiUrl} alt={tool.title} className="h-10 w-10 object-contain" />
             </span>
             <span>
-              <span className="block text-base font-black text-amiko-ink">
+              <span className="block text-sm font-black text-amiko-ink">
                 {tool.title}
               </span>
-              <span className="mt-1 block text-xs font-bold leading-5 text-amiko-muted">
+              <span className="mt-0.5 block text-xs font-bold leading-5 text-amiko-muted">
                 {tool.description}
               </span>
             </span>
@@ -72,24 +99,33 @@ export default function DemoRecursosPage() {
         ))}
       </section>
 
-      <section className="mt-8">
+      {/* Pausas rápidas */}
+      <section>
         <div className="mb-3 flex items-center gap-2">
-          <AmikoIcon name="pause" className="h-5 w-5 text-amiko-green" />
-          <h2 className="text-lg font-black text-amiko-green">Pausas rapidas</h2>
+          <span className="select-none text-base">⏸️</span>
+          <h2 className="text-base font-black text-amiko-ink">Pausas rápidas</h2>
         </div>
         <div className="space-y-2">
-          {breakActivities.slice(0, 5).map((activity) => (
-            <button
-              key={activity.label}
-              type="button"
-              className="focus-ring flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 text-left shadow-sm transition active:scale-[0.98]"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amiko-sky text-amiko-blue">
-                <StudentPortalIcon name={activity.icon} className="h-5 w-5" />
-              </span>
-              <span className="text-sm font-black text-amiko-ink">{activity.label}</span>
-            </button>
-          ))}
+          {breakActivities.slice(0, 5).map((activity) => {
+            const emojiUrl = breakActivityEmojis[activity.icon] || "";
+            return (
+              <button
+                key={activity.label}
+                type="button"
+                onClick={() => {
+                  if (soundSettings.canPlay()) playSound("tap");
+                }}
+                className="focus-ring flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 text-left shadow-sm transition active:scale-[0.98] hover:border-amiko-green/30 hover:bg-amiko-mint/20"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 p-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={emojiUrl} alt={activity.label} className="h-8 w-8 object-contain" />
+                </span>
+                <span className="flex-1 text-sm font-black text-amiko-ink">{activity.label}</span>
+                <AmikoIcon name="chevron" className="h-4 w-4 text-slate-300" />
+              </button>
+            );
+          })}
         </div>
       </section>
     </>

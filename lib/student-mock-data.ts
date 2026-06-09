@@ -46,6 +46,9 @@ export type ChildTask = {
   taskDescription?: string;
   tutorNote?: string;
   visualKeywords?: string[];
+  // "assigned_by_tutor" = tutor prepared it → workspace uses Pasos/Amiko/Recursos tabs
+  // "created_by_student" = student's own study space → uses Materiales/Amiko/Recursos tabs
+  origin?: "assigned_by_tutor" | "created_by_student";
 };
 
 export type SupportContact = {

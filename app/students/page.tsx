@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { AvatarUpload } from "@/components/avatar-upload";
+import { StudentCardActions } from "@/components/student-card-actions";
 import { DetailShell } from "@/components/detail-shell";
 import { EditProfileForm } from "@/components/edit-profile-form";
 import { createClient } from "@/lib/supabase/server";
@@ -127,13 +128,7 @@ export default async function ProfilePage() {
                       {s.age} años · {s.school_grade}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition hover:bg-amiko-sky"
-                    aria-label={`Ajustes de ${s.name}`}
-                  >
-                    <AmikoIcon name="settings" className="h-4 w-4 text-amiko-muted" />
-                  </button>
+                  <StudentCardActions studentName={s.name} />
                 </div>
                 {s.visual_preferences || s.notes ? (
                   <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-bold leading-5 text-amiko-muted">

@@ -121,7 +121,12 @@ import dynamic from 'next/dynamic';
 const ComplexChart = dynamic(() => import('./complex-chart'), { ssr: false });
 ```
 
-### 6. Component Checklist
+### 6. Student Mode UX/UI Rule
+
+> **Regla Oficial del Proyecto:**
+> El modo estudiante de AMIKO debe seguir una lógica de UX/UI pensada para niños y adolescentes. Debe ser más visual, cálido, claro y motivador que el modo tutor. Debe priorizar colores suaves/pasteles, recursos visuales amigables, iconografía clara, barras de progreso visibles y una presentación que motive al estudiante sin sobrecargarlo.
+
+### 7. Component Checklist
 
 Before submitting a component:
 - [ ] Follows AMIKO brand (colors, spacing, typography)
@@ -135,4 +140,4 @@ Before submitting a component:
 
 ---
 
-*Updated: 2026-06-05*
+*Updated: 2026-06-09*
