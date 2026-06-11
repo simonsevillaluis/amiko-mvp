@@ -199,8 +199,13 @@ async function detectAndAppendImage(
 
 // ─── LLM helpers ──────────────────────────────────────────────────────────────
 
-// 12 seconds per provider — keeps total chain under Vercel's 60s function limit
-const PROVIDER_TIMEOUT_MS = 12_000;
+// Fast APIs (Gemini, DeepSeek) respond in 1-3s when healthy — 7s is plenty
+const FAST_PROVIDER_TIMEOUT_MS = 7_000;
+// NVIDIA NIM inference can be slower — give it a bit more headroom
+const NVIDIA_TIMEOUT_MS = 10_000;
+
+// Auth/bad-request errors are unrecoverable — no point waiting for the timeout
+const FAST_FAIL_STATUSES = new Set([400, 401, 403, 404]);
 
 async function callOpenAiChatAPI(
   apiUrl: string,
@@ -209,7 +214,8 @@ async function callOpenAiChatAPI(
   systemPrompt: string,
   history: { role: string; text: string }[],
   message: string,
-  parentSignal: AbortSignal
+  parentSignal: AbortSignal,
+  timeoutMs = FAST_PROVIDER_TIMEOUT_MS
 ): Promise<string> {
   const messages = [
     { role: "system", content: systemPrompt },
@@ -220,9 +226,8 @@ async function callOpenAiChatAPI(
     { role: "user", content: message },
   ];
 
-  // Combine per-provider timeout with parent (client disconnect) signal
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new Error("Provider timeout")), PROVIDER_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(new Error("Provider timeout")), timeoutMs);
   const onParentAbort = () => controller.abort(parentSignal.reason);
   parentSignal.addEventListener("abort", onParentAbort, { once: true });
 
@@ -235,7 +240,10 @@ async function callOpenAiChatAPI(
     });
 
     if (!response.ok) {
-      throw new Error(`API error (${response.status}): ${await response.text()}`);
+      const body = await response.text();
+      const err = new Error(`API error (${response.status}): ${body}`) as Error & { status: number };
+      err.status = response.status;
+      throw err;
     }
 
     const data = await response.json();
@@ -246,6 +254,10 @@ async function callOpenAiChatAPI(
     clearTimeout(timer);
     parentSignal.removeEventListener("abort", onParentAbort);
   }
+}
+
+function isFastFail(err: unknown): boolean {
+  return FAST_FAIL_STATUSES.has((err as { status?: number }).status ?? 0);
 }
 
 function generateMockChatMessage(mode: string, studentName: string): string {
@@ -288,7 +300,7 @@ export async function POST(request: Request) {
   let replyText = "";
   let success = false;
 
-  // 1. Gemini
+  // 1. Gemini — fast API, 7s should be more than enough when healthy
   if (!success && process.env.GEMINI_API_KEY) {
     try {
       const { GoogleGenerativeAI } = await import("@google/generative-ai");
@@ -297,20 +309,18 @@ export async function POST(request: Request) {
       const chat = model.startChat({
         history: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
       });
-
-      // Gemini SDK doesn't accept AbortSignal directly — wrap in Promise.race with timeout
+      // Gemini SDK doesn't expose AbortSignal — race against a manual timer
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini timeout")), PROVIDER_TIMEOUT_MS)
+        setTimeout(() => reject(new Error("Gemini timeout")), FAST_PROVIDER_TIMEOUT_MS)
       );
-      const geminiPromise = chat.sendMessage(message);
-      replyText = (await Promise.race([geminiPromise, timeoutPromise])).response.text();
+      replyText = (await Promise.race([chat.sendMessage(message), timeoutPromise])).response.text();
       success = true;
     } catch (err) {
       console.error("[chat] Gemini failed:", (err as Error).message);
     }
   }
 
-  // 2. DeepSeek
+  // 2. DeepSeek — fast API, 7s timeout
   if (!success && process.env.DEEPSEEK_API_KEY) {
     try {
       replyText = await callOpenAiChatAPI(
@@ -319,34 +329,44 @@ export async function POST(request: Request) {
         process.env.DEEPSEEK_API_KEY,
         systemInstruction, history, message,
         clientSignal
+        // uses FAST_PROVIDER_TIMEOUT_MS default
       );
       success = true;
     } catch (err) {
       console.error("[chat] DeepSeek failed:", (err as Error).message);
+      // Auth/config error — no point retrying other NVIDIA models either with same key pattern
     }
   }
 
-  // 3. NVIDIA NIM — try reliable models in order, stop at first success
-  if (!success && process.env.NVIDIA_API_KEY) {
-    const nimModels = [
-      "meta/llama-3.1-70b-instruct",
-      "nvidia/llama-3.1-nemotron-70b-instruct",
-      "meta/llama-3.3-70b-instruct",
-    ];
-    for (const nimModel of nimModels) {
-      if (clientSignal.aborted) break;
-      try {
-        replyText = await callOpenAiChatAPI(
-          "https://integrate.api.nvidia.com/v1/chat/completions",
-          nimModel,
-          process.env.NVIDIA_API_KEY,
-          systemInstruction, history, message,
-          clientSignal
-        );
-        success = true;
-        break;
-      } catch (err) {
-        console.error(`[chat] NVIDIA NIM ${nimModel} failed:`, (err as Error).message);
+  // 3. NVIDIA NIM — slower inference, 10s timeout; try one reliable model only
+  if (!success && process.env.NVIDIA_API_KEY && !clientSignal.aborted) {
+    try {
+      replyText = await callOpenAiChatAPI(
+        "https://integrate.api.nvidia.com/v1/chat/completions",
+        "meta/llama-3.1-70b-instruct",
+        process.env.NVIDIA_API_KEY,
+        systemInstruction, history, message,
+        clientSignal,
+        NVIDIA_TIMEOUT_MS
+      );
+      success = true;
+    } catch (err) {
+      console.error("[chat] NVIDIA NIM failed:", (err as Error).message);
+      // If the first model returns a fast-fail status, try one fallback model
+      if (!isFastFail(err) && !clientSignal.aborted) {
+        try {
+          replyText = await callOpenAiChatAPI(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            "nvidia/llama-3.1-nemotron-70b-instruct",
+            process.env.NVIDIA_API_KEY,
+            systemInstruction, history, message,
+            clientSignal,
+            NVIDIA_TIMEOUT_MS
+          );
+          success = true;
+        } catch (err2) {
+          console.error("[chat] NVIDIA NIM fallback failed:", (err2 as Error).message);
+        }
       }
     }
   }
