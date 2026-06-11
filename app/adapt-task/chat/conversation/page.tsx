@@ -26,26 +26,6 @@ type ModeKey = "tareas" | "calma" | "registro" | "mensajes";
 
 const modeKeys: ModeKey[] = ["tareas", "calma", "registro", "mensajes"];
 
-const modeFallbacks: Record<ModeKey, string> = {
-  tareas: "No sabe empezar",
-  calma: "Se frustró",
-  registro: "Completó un paso",
-  mensajes: "Para docente",
-};
-
-function getUserPrompt(mode: ModeKey, need: string) {
-  if (mode === "calma") return `Necesito ayuda para acompañar con calma: ${need}.`;
-  if (mode === "registro") return `Quiero registrar esto de hoy: ${need}.`;
-  if (mode === "mensajes") return `Quiero preparar un mensaje: ${need}.`;
-  return `La tarea necesita apoyo: ${need}.`;
-}
-
-const contextOptions = [
-  { title: `Perfil de ${student.name}`, description: "Preferencias de apoyo y forma de presentar los pasos." },
-  { title: "Tarea compartida", description: "La consigna o imagen que agregues en esta conversación." },
-  { title: "Registros recientes", description: "Solo para recordar qué apoyos funcionaron antes." },
-];
-
 function renderMessageContent(text: string, msgId: string) {
   const parts: React.ReactNode[] = [];
   const blockRegex = /```mermaid\n([\s\S]*?)```|```slides\n([\s\S]*?)```|!\[(.*?)\]\((.*?)\)/g;
@@ -106,9 +86,17 @@ export default function ConversationPage() {
   const [mode, setMode] = useState<ModeKey>("tareas");
   const [returnPath, setReturnPath] = useState(CHAT_FALLBACK_PATH);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Tracks the in-flight request so we can abort it when the user sends a new message
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const limitReached = userMessageCount >= MAX_MESSAGES;
   const chatHomeHref = withChatFrom(CHAT_HOME_PATH, returnPath);
+
+  const contextOptions = [
+    { title: `Perfil de ${student.name}`, description: "Preferencias de apoyo y forma de presentar los pasos." },
+    { title: "Tarea compartida", description: "La consigna o imagen que agregues en esta conversación." },
+    { title: "Registros recientes", description: "Solo para recordar qué apoyos funcionaron antes." },
+  ];
 
   // Parse URL params and show only greeting
   useEffect(() => {
@@ -149,11 +137,22 @@ export default function ConversationPage() {
     return () => { document.body.style.overflow = prev; };
   }, [showContext]);
 
-  async function sendToGemini(text: string, history: Message[]) {
+  // Abort any in-flight request on unmount
+  useEffect(() => {
+    return () => { abortControllerRef.current?.abort(); };
+  }, []);
+
+  async function sendToAI(text: string, history: Message[]) {
+    // Cancel any previous in-flight request — allows "send while thinking"
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
@@ -169,11 +168,10 @@ export default function ConversationPage() {
 
       if (data.error) {
         const errorText = String(data.error);
-        // Detectar si es un error de cuota o de saturación/indisponibilidad de Google
-        const isSaturated = errorText.includes("503") || 
-                            errorText.includes("429") || 
-                            errorText.toLowerCase().includes("quota") || 
-                            errorText.toLowerCase().includes("demand") || 
+        const isSaturated = errorText.includes("503") ||
+                            errorText.includes("429") ||
+                            errorText.toLowerCase().includes("quota") ||
+                            errorText.toLowerCase().includes("demand") ||
                             errorText.toLowerCase().includes("limit") ||
                             errorText.toLowerCase().includes("unavailable");
 
@@ -182,44 +180,34 @@ export default function ConversationPage() {
 
         let replyText = "";
         if (isSaturated) {
-          if (nextErrorCount === 1) {
-            replyText = "¡Uy! En este momento mi cabecita está procesando muchas cosas a la vez y me cansé un poquito. 🧠✨ ¿Podrías intentar enviarme tu mensaje de nuevo en unos segundos? ¡Aquí te espero con gusto!";
-          } else {
-            replyText = "Aún sigo procesando información de otros amiguitos. Dame un momentito más e intenta de nuevo, por favor. 🧠✨";
-          }
+          replyText = nextErrorCount === 1
+            ? "¡Uy! En este momento estoy procesando muchas cosas. 🧠✨ ¿Podrías intentar de nuevo en unos segundos?"
+            : "Aún sigo procesando. Dame un momentito más e intenta de nuevo. 🧠✨";
         } else {
-          // Si el error es otro, mandamos el error técnico exacto en texto
           replyText = `[Error técnico de Amiko]: ${data.error}`;
         }
 
-        setMessages((prev) => [
-          ...prev,
-          { id: Date.now().toString(), role: "model", text: replyText },
-        ]);
+        setMessages((prev) => [...prev, { id: Date.now().toString(), role: "model", text: replyText }]);
         return;
       }
 
-      const replyText = data.text ?? "No pude procesar tu mensaje.";
-
-      // Reseteamos el contador si hay éxito
       setConsecutiveErrors(0);
-
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: "model", text: replyText },
+        { id: Date.now().toString(), role: "model", text: data.text ?? "No pude procesar tu mensaje." },
       ]);
     } catch (e) {
+      // Ignore intentional aborts (user sent a new message or clicked stop)
+      if ((e as Error).name === "AbortError") return;
+
       const nextErrorCount = consecutiveErrors + 1;
       setConsecutiveErrors(nextErrorCount);
 
-      const replyText = nextErrorCount === 1 
-        ? "¡Uy! Parece que hubo un pequeño problema de conexión. ¿Volvemos a intentarlo en unos segundos?" 
-        : "Sigo teniendo problemas de conexión. Dame un momentito más e intenta de nuevo, por favor. 🧠✨";
+      const replyText = nextErrorCount === 1
+        ? "¡Uy! Hubo un problema de conexión. ¿Volvemos a intentarlo?"
+        : "Sigo teniendo problemas de conexión. Dame un momentito. 🧠✨";
 
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now().toString(), role: "model", text: replyText },
-      ]);
+      setMessages((prev) => [...prev, { id: Date.now().toString(), role: "model", text: replyText }]);
     } finally {
       setLoading(false);
     }
@@ -227,7 +215,8 @@ export default function ConversationPage() {
 
   async function handleSend() {
     const text = input.trim();
-    if (!text || loading || limitReached) return;
+    // Allow sending while loading — it aborts the current request automatically
+    if (!text || limitReached) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: "user", text };
     const newCount = userMessageCount + 1;
@@ -237,17 +226,20 @@ export default function ConversationPage() {
     setMessages((prev) => [...prev, userMsg]);
 
     if (newCount >= MAX_MESSAGES) {
-      setMessages((prev) => [...prev, userMsg]);
+      // Fixed: don't double-add the user message here
       return;
     }
 
-    await sendToGemini(text, [...messages, userMsg]);
+    await sendToAI(text, [...messages, userMsg]);
+  }
+
+  function handleStop() {
+    abortControllerRef.current?.abort();
+    setLoading(false);
   }
 
   function toggleContext(index: number) {
-    setEnabledContext((prev) =>
-      prev.map((v, i) => (i === index ? !v : v))
-    );
+    setEnabledContext((prev) => prev.map((v, i) => (i === index ? !v : v)));
   }
 
   return (
@@ -266,11 +258,13 @@ export default function ConversationPage() {
             </Link>
             <div className="text-center">
               <h1 className="text-lg font-black text-amiko-navy">Amiko IA</h1>
-              {userMessageCount > 0 && (
+              {loading ? (
+                <p className="text-[10px] font-bold text-amiko-blue animate-pulse">Pensando…</p>
+              ) : userMessageCount > 0 ? (
                 <p className="text-[10px] font-bold text-amiko-muted">
                   {MAX_MESSAGES - userMessageCount} mensajes restantes
                 </p>
-              )}
+              ) : null}
             </div>
             <button
               type="button"
@@ -316,6 +310,7 @@ export default function ConversationPage() {
             </div>
           ))}
 
+          {/* Thinking indicator */}
           {loading && (
             <div className="flex items-start gap-3">
               <Image
@@ -339,7 +334,7 @@ export default function ConversationPage() {
             </div>
           )}
 
-          {/* Limit reached card — shown in chat area */}
+          {/* Limit reached card */}
           {limitReached && (
             <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-amiko-navy to-[#082A61] p-5 text-white shadow-soft">
               <div className="mb-3 flex items-center gap-3">
@@ -404,19 +399,37 @@ export default function ConversationPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                placeholder="Escribe una tarea o cuéntame qué pasó..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    // Enter while thinking: send new message (auto-aborts current)
+                    handleSend();
+                  }
+                }}
+                placeholder="Escribe una tarea o cuéntame qué pasó."
                 className="min-w-0 flex-1 rounded-full border border-blue-100 bg-slate-50 px-4 py-3 text-sm font-bold text-amiko-ink placeholder:text-slate-400 outline-none focus:border-amiko-blue"
               />
-              <button
-                type="button"
-                onClick={handleSend}
-                disabled={!input.trim() || loading}
-                aria-label="Enviar"
-                className="focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amiko-green text-white shadow-card transition disabled:opacity-40"
-              >
-                <AmikoIcon name="send" className="h-5 w-5" />
-              </button>
+              {/* Stop button while thinking, send button otherwise */}
+              {loading ? (
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  aria-label="Detener respuesta"
+                  className="focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amiko-coral text-white shadow-card transition active:scale-90"
+                >
+                  <AmikoIcon name="pause" className="h-5 w-5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!input.trim()}
+                  aria-label="Enviar"
+                  className="focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amiko-green text-white shadow-card transition active:scale-90 disabled:opacity-40"
+                >
+                  <AmikoIcon name="send" className="h-5 w-5" />
+                </button>
+              )}
             </div>
           )}
         </footer>
@@ -434,20 +447,15 @@ export default function ConversationPage() {
             className="w-full max-w-[330px] overflow-hidden rounded-3xl bg-white shadow-soft"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header gradient */}
             <div className="bg-gradient-to-br from-amiko-navy to-[#082A61] px-5 py-6 text-center">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15">
                 <AmikoIcon name="camera" className="h-7 w-7 text-white" />
               </span>
-              <h2 className="mt-3 text-xl font-black text-white">
-                Sube al Plan Premium
-              </h2>
+              <h2 className="mt-3 text-xl font-black text-white">Sube al Plan Premium</h2>
               <p className="mt-1.5 text-sm font-bold leading-5 text-blue-200">
                 Sube fotos de tareas y obtén un análisis visual detallado con Amiko.
               </p>
             </div>
-
-            {/* Benefits */}
             <div className="px-5 py-4">
               <div className="space-y-2.5">
                 {[
@@ -464,7 +472,6 @@ export default function ConversationPage() {
                   </div>
                 ))}
               </div>
-
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <Link
                   href="/settings"
@@ -480,9 +487,7 @@ export default function ConversationPage() {
                   Ahora no
                 </button>
               </div>
-              <p className="mt-3 text-center text-xs font-bold text-amiko-muted">
-                Próximamente disponible
-              </p>
+              <p className="mt-3 text-center text-xs font-bold text-amiko-muted">Próximamente disponible</p>
             </div>
           </div>
         </div>

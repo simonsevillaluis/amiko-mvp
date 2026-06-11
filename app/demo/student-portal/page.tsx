@@ -23,6 +23,15 @@ import {
 } from "@/lib/local-progress";
 import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
+import { createClient } from "@/lib/supabase/client";
+import { FloatingModeToggle } from "@/components/floating-mode-toggle";
+
+type RealAdaptedTask = {
+  task_id: string;
+  title: string;
+  subject: string | null;
+  simple_summary: string;
+};
 
 type StudentView = "home" | "task-assigned" | "task-own" | "history";
 
@@ -41,23 +50,56 @@ function EmotionalCheckin({ onComplete }: { onComplete: () => void }) {
         </p>
 
         <div className="mt-5 grid grid-cols-5 gap-2">
-          {emotionOptions.map((emotion) => (
-            <button
-              key={emotion.value}
-              type="button"
-              onClick={() => {
-                saveProgressEvent("emotion_checkin", "general", undefined, emotion.value);
-                markCheckinDone();
-                onComplete();
-              }}
-              className="focus-ring flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-1 py-2 text-center transition active:scale-95"
-            >
-              <StudentPortalIcon name={emotion.icon} className="h-7 w-7 text-amiko-blue" />
-              <span className="text-[10px] font-black leading-tight text-amiko-muted">
-                {emotion.label}
-              </span>
-            </button>
-          ))}
+          {emotionOptions.map((emotion) => {
+            let iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Smiling%20face%20with%20smiling%20eyes/3D/smiling_face_with_smiling_eyes_3d.png";
+            let animationClass = "group-hover:-translate-y-1 group-hover:scale-110";
+            switch (emotion.value) {
+              case "muy_bien":
+                iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Star-struck/3D/star-struck_3d.png";
+                animationClass = "group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:rotate-6";
+                break;
+              case "bien":
+                iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Smiling%20face%20with%20smiling%20eyes/3D/smiling_face_with_smiling_eyes_3d.png";
+                animationClass = "group-hover:-translate-y-1 group-hover:scale-110";
+                break;
+              case "regular":
+                iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Neutral%20face/3D/neutral_face_3d.png";
+                animationClass = "group-hover:scale-105 group-hover:rotate-[-6deg]";
+                break;
+              case "cansado":
+                iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Tired%20face/3D/tired_face_3d.png";
+                animationClass = "group-hover:scale-95 group-hover:opacity-80";
+                break;
+              case "triste":
+                iconUrl = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pensive%20face/3D/pensive_face_3d.png";
+                animationClass = "group-hover:translate-y-1 group-hover:scale-95";
+                break;
+            }
+
+            return (
+              <button
+                key={emotion.value}
+                type="button"
+                onClick={() => {
+                  saveProgressEvent("emotion_checkin", "general", undefined, emotion.value);
+                  markCheckinDone();
+                  onComplete();
+                }}
+                className="group focus-ring flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-1 py-2 text-center transition-all duration-300 hover:bg-white hover:shadow-sm hover:border-slate-200 active:scale-95"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={iconUrl}
+                  alt={emotion.label}
+                  className={`h-8 w-8 object-contain transition-all duration-300 ${animationClass}`}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
+                />
+                <span className="text-[10px] font-black leading-tight text-amiko-muted group-hover:text-amiko-ink transition-colors">
+                  {emotion.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <button
@@ -81,28 +123,28 @@ const getSubjectStyles = (icon: string) => {
         bg: "bg-emerald-50/40 border-emerald-100/60 hover:border-emerald-200/80",
         iconBg: "bg-emerald-100 text-emerald-600",
         barColor: "from-emerald-400 to-teal-400",
-        iconUrl: "https://img.icons8.com/3d-fluency/94/calculator.png",
+        iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Abacus/3D/abacus_3d.png",
       };
     case "reading":
       return {
         bg: "bg-blue-50/40 border-blue-100/60 hover:border-blue-200/80",
         iconBg: "bg-blue-100 text-blue-600",
         barColor: "from-blue-400 to-indigo-400",
-        iconUrl: "https://img.icons8.com/3d-fluency/94/book.png",
+        iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Open%20book/3D/open_book_3d.png",
       };
     case "science":
       return {
         bg: "bg-purple-50/40 border-purple-100/60 hover:border-purple-200/80",
         iconBg: "bg-purple-100 text-purple-600",
         barColor: "from-purple-400 to-pink-400",
-        iconUrl: "https://img.icons8.com/3d-fluency/94/test-tube.png",
+        iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Test%20tube/3D/test_tube_3d.png",
       };
     default:
       return {
         bg: "bg-amber-50/40 border-amber-100/60 hover:border-amber-200/80",
         iconBg: "bg-amber-100 text-amber-600",
         barColor: "from-amber-400 to-orange-400",
-        iconUrl: "https://img.icons8.com/3d-fluency/94/book.png",
+        iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Open%20book/3D/open_book_3d.png",
       };
   }
 };
@@ -117,7 +159,7 @@ function getStatusConfig(status: TaskStatus) {
         actionLabel: "Continuar",
         actionBg: "bg-blue-600 text-white shadow-sm",
         actionIcon: "play" as const,
-        emojiUrl: "https://img.icons8.com/3d-fluency/94/rocket.png",
+        emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png",
         message: "¡Vas muy bien!",
       };
     case "ayuda_solicitada":
@@ -128,7 +170,7 @@ function getStatusConfig(status: TaskStatus) {
         actionLabel: "Revisar",
         actionBg: "bg-amber-500 text-white shadow-sm",
         actionIcon: "help" as const,
-        emojiUrl: "https://img.icons8.com/3d-fluency/94/idea.png",
+        emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png",
         message: "Revisemos juntos.",
       };
     case "terminada":
@@ -139,7 +181,7 @@ function getStatusConfig(status: TaskStatus) {
         actionLabel: "Repasar",
         actionBg: "bg-slate-100 text-slate-600",
         actionIcon: "check" as const,
-        emojiUrl: "https://img.icons8.com/3d-fluency/94/trophy.png",
+        emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png",
         message: "¡Lo lograste!",
       };
     case "por_empezar":
@@ -182,7 +224,7 @@ function TaskCard({
         <div className="flex items-center gap-3 min-w-0">
           <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] shadow-sm ${subjectStyles.iconBg} bg-white/70 p-1`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" />
+            <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
           </span>
           <div className="min-w-0">
             <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">{task.subject}</span>
@@ -191,7 +233,7 @@ function TaskCard({
         </div>
         <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white/80 border border-slate-100/40 p-0.5 shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={config.emojiUrl} alt={config.label} className="h-7 w-7 object-contain" />
+          <img src={config.emojiUrl} alt={config.label} className="h-7 w-7 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
         </div>
       </div>
 
@@ -256,9 +298,10 @@ function TaskHistoryView({
           <div className="flex items-center justify-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://img.icons8.com/3d-fluency/94/trophy.png"
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png"
               alt=""
               className="h-7 w-7 object-contain"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
             />
             <h1 className="text-lg font-black text-amiko-navy">Historial</h1>
           </div>
@@ -272,9 +315,10 @@ function TaskHistoryView({
           <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://img.icons8.com/3d-fluency/94/checklist.png"
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png"
               alt=""
               className="h-16 w-16 object-contain opacity-50"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
             />
             <p className="text-base font-black text-amiko-muted">Todavía no hay tareas completadas.</p>
           </div>
@@ -292,7 +336,7 @@ function TaskHistoryView({
                 >
                   <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] shadow-sm ${subjectStyles.iconBg} bg-white/70 p-1`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" />
+                    <img src={subjectStyles.iconUrl} alt={task.subject} className="h-9 w-9 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">{task.subject}</span>
@@ -308,7 +352,7 @@ function TaskHistoryView({
                     className="focus-ring flex shrink-0 min-h-10 items-center gap-1.5 rounded-full bg-amiko-green px-4 text-xs font-black text-white shadow-sm transition active:scale-95"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="https://img.icons8.com/3d-fluency/94/recurring-appointment.png" alt="" className="h-4 w-4 object-contain" />
+                    <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Counterclockwise%20arrows%20button/3D/counterclockwise_arrows_button_3d.png" alt="" className="h-4 w-4 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                     Repetir
                   </button>
                 </div>
@@ -333,7 +377,47 @@ export default function DemoStudentPortalPage() {
     Record<string, { progress: number; status: TaskStatus }>
   >({});
 
+  const [realStudentName, setRealStudentName] = useState<string | null>(null);
+  const [realTasks, setRealTasks] = useState<RealAdaptedTask[]>([]);
+
   const handleCloseCheckin = useCallback(() => setShowCheckin(false), []);
+
+  // Fetch first registered student name and real adapted tasks from Supabase
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+
+      const [studentRes, tasksRes] = await Promise.all([
+        supabase
+          .from("student_profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("adapted_tasks")
+          .select("task_id, simple_summary, tasks(title, subject)")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8),
+      ]);
+
+      if (studentRes.data?.name) setRealStudentName(studentRes.data.name);
+
+      if (tasksRes.data) {
+        setRealTasks(
+          tasksRes.data.map((d) => ({
+            task_id: d.task_id,
+            simple_summary: d.simple_summary,
+            title: (d.tasks as unknown as { title: string; subject: string | null })?.title ?? "Tarea",
+            subject: (d.tasks as unknown as { title: string; subject: string | null })?.subject ?? null,
+          })),
+        );
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // Load local progress events dynamically
@@ -413,15 +497,76 @@ export default function DemoStudentPortalPage() {
     return <TaskWorkspaceOwn onExit={() => setView("home")} />;
   }
 
+  const displayName = realStudentName ?? studentPortalStudent.name;
+
   return (
     <>
+      <FloatingModeToggle mode="student" />
       {showCheckin && <EmotionalCheckin onComplete={handleCloseCheckin} />}
 
       <section className="mb-5">
         <h1 className="text-2xl font-black text-amiko-ink">
-          {getGreeting()}, {studentPortalStudent.name}.
+          {displayName ? `${getGreeting()}, ${displayName}.` : "¡Bienvenido!"}
         </h1>
       </section>
+
+      {/* ── Tareas del tutor (reales desde Supabase) ─────────────────────── */}
+      {realTasks.length > 0 && (
+        <section className="mb-7">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-black text-amiko-ink">Tareas nuevas</h2>
+            <span className="rounded-full bg-amiko-green/10 px-3 py-1 text-xs font-black text-amiko-green">
+              de tu tutor
+            </span>
+          </div>
+          <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3 px-4 snap-x snap-mandatory">
+              {realTasks.map((t) => (
+                <Link
+                  key={t.task_id}
+                  href={`/paso-a-paso/${t.task_id}`}
+                  className="focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 border-amiko-green/20 bg-white p-4 shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3 hover:border-amiko-green/40"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-amiko-mint">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Open%20book/3D/open_book_3d.png"
+                        alt=""
+                        className="h-9 w-9 object-contain"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
+                      />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      {t.subject && (
+                        <span className="block text-[9px] font-black uppercase tracking-[0.14em] text-amiko-muted">
+                          {t.subject}
+                        </span>
+                      )}
+                      <span className="mt-0.5 block text-sm font-black leading-snug text-amiko-ink line-clamp-2">
+                        {t.title}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 text-xs font-bold leading-5 text-amiko-muted">
+                    {t.simple_summary}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amiko-sky px-2.5 py-1 text-[10px] font-black text-amiko-blue">
+                      <span className="h-2 w-2 rounded-full bg-amiko-blue" />
+                      Por empezar
+                    </span>
+                    <span className="inline-flex min-h-9 items-center gap-1 rounded-full bg-amiko-green px-4 text-xs font-black text-white">
+                      Vamos
+                      <AmikoIcon name="play" className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Mis tareas (asignadas por tutor) ─────────────────────────────── */}
       <section className="mb-7">
@@ -465,9 +610,10 @@ export default function DemoStudentPortalPage() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="https://img.icons8.com/3d-fluency/94/trophy.png"
+                    src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png"
                     alt=""
                     className="h-12 w-12 object-contain"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
                   />
                   <p className="text-xs font-black text-amiko-ink">{doneCount} terminada{doneCount > 1 ? "s" : ""}</p>
                   <p className="text-[10px] font-bold text-amiko-green leading-snug">Ver historial →</p>
@@ -484,7 +630,7 @@ export default function DemoStudentPortalPage() {
             className="focus-ring mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 py-3 text-xs font-black text-amiko-green transition hover:bg-emerald-100 active:scale-95"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" alt="" className="h-5 w-5 object-contain" />
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
             ¡Completaste todo! Ver historial
           </button>
         )}
@@ -543,6 +689,9 @@ export default function DemoStudentPortalPage() {
           <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-amiko-green" />
         </Link>
       </section>
+
+      {/* Spacer so floating button doesn't cover last element */}
+      <div className="h-20" />
     </>
   );
 }

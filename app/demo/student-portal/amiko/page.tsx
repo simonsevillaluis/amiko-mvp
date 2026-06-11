@@ -18,22 +18,22 @@ const STARTERS = [
   {
     id: "no-entendi",
     label: "No entendí esto",
-    iconUrl: "https://img.icons8.com/3d-fluency/94/question-mark.png",
+    iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Thinking%20face/3D/thinking_face_3d.png",
   },
   {
     id: "paso-a-paso",
     label: "Paso a paso",
-    iconUrl: "https://img.icons8.com/3d-fluency/94/staircase.png",
+    iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Footprints/3D/footprints_3d.png",
   },
   {
     id: "pedir-ayuda",
     label: "Quiero pedir ayuda",
-    iconUrl: "https://img.icons8.com/3d-fluency/94/hand.png",
+    iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Raised%20hand/Default/3D/raised_hand_3d_default.png",
   },
   {
     id: "mapa-mental",
     label: "Hacer un mapa mental",
-    iconUrl: "https://img.icons8.com/3d-fluency/94/mind-map.png",
+    iconUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Brain/3D/brain_3d.png",
   },
 ];
 
@@ -182,14 +182,14 @@ export default function DemoAmikoPage() {
             aria-pressed={showStarters}
             onClick={() => setShowStarters((v) => !v)}
             className={`focus-ring flex h-10 w-10 items-center justify-center rounded-full transition ${
-              showStarters ? "bg-amiko-mint text-amiko-green" : "text-amiko-navy hover:bg-amiko-sky"
+              showStarters ? "bg-amiko-navy shadow-sm" : "bg-amiko-sky/70 hover:bg-amiko-sky"
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://img.icons8.com/3d-fluency/94/idea.png"
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png"
               alt=""
-              className="h-6 w-6 object-contain"
+              className="h-6 w-6 object-contain drop-shadow-sm"
             />
           </button>
         </div>

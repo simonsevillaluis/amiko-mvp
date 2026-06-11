@@ -71,7 +71,7 @@ const SOURCE_OPTIONS: Array<{
 }> = [
   { key: "pdf",     label: "PDF",          sublabel: "Documento de texto o guía",   icon: "resources", premium: true  },
   { key: "audio",   label: "Audio",        sublabel: "Grabación o nota de voz",      icon: "mic",       premium: true  },
-  { key: "imagen",  label: "Imagen",       sublabel: "Foto de la tarea o pizarrón", icon: "image",     premium: true  },
+  { key: "imagen",  label: "Foto / Captura", sublabel: "Foto de la tarea o pizarrón", icon: "camera",   premium: true  },
   { key: "web",     label: "Sitio web",    sublabel: "Enlace o página de internet",  icon: "task",      premium: true  },
   { key: "youtube", label: "YouTube",      sublabel: "Video o explicación en línea", icon: "play",      premium: true  },
   { key: "texto",   label: "Texto copiado", sublabel: "Pega la consigna directamente", icon: "journal", premium: false },
@@ -115,6 +115,7 @@ export default function AmikoIAPage() {
   if (contextNote.trim()) conversationParams.set("note", contextNote.trim());
   if (selectedSource && selectedSource !== "texto") conversationParams.set("attachment", selectedSource);
   const conversationHref = `/adapt-task/chat/conversation?${conversationParams.toString()}`;
+  const hasContext = contextNote.trim().length > 0;
 
   // Lock body scroll when a sheet/modal is open
   useEffect(() => {
@@ -329,13 +330,28 @@ export default function AmikoIAPage() {
             <p className="text-xs font-bold leading-5 text-amiko-navy">{selectedPanel.helper}</p>
           </div>
 
-          <Link
-            href={conversationHref}
-            className="focus-ring mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-amiko-blue px-5 text-sm font-black text-white shadow-card transition hover:brightness-95"
-          >
-            {selectedPanel.cta}
-            <AmikoIcon name="chevron" className="h-5 w-5" />
-          </Link>
+          {hasContext ? (
+            <Link
+              href={conversationHref}
+              className="focus-ring mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-amiko-blue px-5 text-sm font-black text-white shadow-card transition hover:brightness-95"
+            >
+              {selectedPanel.cta}
+              <AmikoIcon name="chevron" className="h-5 w-5" />
+            </Link>
+          ) : (
+            <div className="mt-4 space-y-2">
+              <div
+                aria-disabled="true"
+                className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-slate-200 px-5 text-sm font-black text-slate-400"
+              >
+                {selectedPanel.cta}
+                <AmikoIcon name="chevron" className="h-5 w-5" />
+              </div>
+              <p className="text-center text-xs font-bold text-amiko-muted">
+                Escribe una nota o selecciona una fuente para continuar.
+              </p>
+            </div>
+          )}
         </section>
       </AppShell>
 

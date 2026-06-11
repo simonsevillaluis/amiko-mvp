@@ -7,11 +7,11 @@ import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
 
 const breakActivityEmojis: Record<string, string> = {
-  water: "https://img.icons8.com/3d-fluency/94/water.png",
+  water: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Droplet/3D/droplet_3d.png",
   stretch: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20cartwheeling/3D/person_cartwheeling_3d.png",
-  draw: "https://img.icons8.com/3d-fluency/94/paint-palette.png",
-  eyes: "https://img.icons8.com/3d-fluency/94/sleeping.png",
-  calm: "https://img.icons8.com/3d-fluency/94/lotus.png",
+  draw: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Artist%20palette/3D/artist_palette_3d.png",
+  eyes: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Zzz/3D/zzz_3d.png",
+  calm: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20in%20lotus%20position/Default/3D/person_in_lotus_position_3d_default.png",
 };
 
 const tools = [
@@ -21,7 +21,7 @@ const tools = [
     bg: "bg-sky-50/50",
     border: "border-sky-100/60 hover:border-sky-200/80",
     iconBg: "bg-sky-100/80 shadow-sm",
-    emojiUrl: "https://img.icons8.com/3d-fluency/94/lotus.png",
+    emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20in%20lotus%20position/Default/3D/person_in_lotus_position_3d_default.png",
   },
   {
     title: "Pasos",
@@ -37,7 +37,7 @@ const tools = [
     bg: "bg-orange-50/50",
     border: "border-orange-100/60 hover:border-orange-200/80",
     iconBg: "bg-orange-100/80 shadow-sm",
-    emojiUrl: "https://img.icons8.com/3d-fluency/94/hand.png",
+    emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Raised%20hand/Default/3D/raised_hand_3d_default.png",
   },
   {
     title: "Dibujar",
@@ -45,7 +45,7 @@ const tools = [
     bg: "bg-purple-50/50",
     border: "border-purple-100/60 hover:border-purple-200/80",
     iconBg: "bg-purple-100/80 shadow-sm",
-    emojiUrl: "https://img.icons8.com/3d-fluency/94/paint-palette.png",
+    emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Artist%20palette/3D/artist_palette_3d.png",
   },
 ];
 
@@ -85,7 +85,7 @@ export default function DemoRecursosPage() {
           >
             <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${tool.iconBg} bg-white/70 p-1`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tool.emojiUrl} alt={tool.title} className="h-10 w-10 object-contain" />
+              <img src={tool.emojiUrl} alt={tool.title} className="h-10 w-10 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
             </span>
             <span>
               <span className="block text-sm font-black text-amiko-ink">
@@ -103,7 +103,7 @@ export default function DemoRecursosPage() {
       <section>
         <div className="mb-3 flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pause%20button/3D/pause_button_3d.png" alt="" className="h-5 w-5 object-contain" />
+          <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pause%20button/3D/pause_button_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
           <h2 className="text-base font-black text-amiko-ink">Pausas rápidas</h2>
         </div>
         <div className="space-y-2">
@@ -120,7 +120,7 @@ export default function DemoRecursosPage() {
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 p-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={emojiUrl} alt={activity.label} className="h-8 w-8 object-contain" />
+                  <img src={emojiUrl} alt={activity.label} className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                 </span>
                 <span className="flex-1 text-sm font-black text-amiko-ink">{activity.label}</span>
                 <AmikoIcon name="chevron" className="h-4 w-4 text-slate-300" />

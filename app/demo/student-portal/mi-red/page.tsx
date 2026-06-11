@@ -46,7 +46,7 @@ export default function DemoMiRedPage() {
         <p className="text-sm font-black leading-6 text-amiko-navy">
           Estas personas están aquí para acompañarte.{" "}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Yellow%20heart/3D/yellow_heart_3d.png" alt="" className="inline h-5 w-5 object-contain align-text-bottom" />
+        <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Yellow%20heart/3D/yellow_heart_3d.png" alt="" className="inline h-5 w-5 object-contain align-text-bottom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export default function DemoMiRedPage() {
             key={contact.id}
             className="flex items-center gap-4 rounded-[22px] border border-slate-100 bg-white p-4 shadow-card"
           >
-            <StudentAvatar name={contact.name} className="h-13 w-13 shrink-0 text-xl" />
+            <StudentAvatar name={contact.name} className="h-12 w-12 shrink-0 text-xl" />
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-base font-black text-amiko-ink">
                 {contact.name}
@@ -65,9 +65,10 @@ export default function DemoMiRedPage() {
               <p className="flex items-center gap-1.5 text-sm font-bold text-amiko-muted">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={roleImg[contact.role] ?? "https://img.icons8.com/3d-fluency/94/user.png"}
+                  src={roleImg[contact.role] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person/3D/person_3d.png"}
                   alt=""
                   className="h-4 w-4 object-contain"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
                 />
                 {contact.role}
               </p>

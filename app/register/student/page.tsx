@@ -33,7 +33,7 @@ function Field({
     <label className="block">
       <span className="mb-2 flex items-center justify-between text-sm font-black text-amiko-ink">
         <span>{label}</span>
-        {optional ? <span className="text-xs text-amiko-muted">Opcional</span> : null}
+        {optional ? <span className="text-xs font-bold text-amiko-muted">Opcional</span> : null}
       </span>
       <input
         type={type}
@@ -46,10 +46,19 @@ function Field({
   );
 }
 
+function calcAge(birthDate: string): number {
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 export default function StudentOnboardingPage() {
   const router = useRouter();
   const [studentName, setStudentName] = useState("");
-  const [age, setAge] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [educationLevel, setEducationLevel] = useState<EducationLevel | "">("");
   const [gradeYear, setGradeYear] = useState("");
@@ -59,13 +68,20 @@ export default function StudentOnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const today = new Date();
+  const maxStudentDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
+    .toISOString()
+    .split("T")[0];
+  const minStudentDate = new Date(today.getFullYear() - 25, today.getMonth(), today.getDate())
+    .toISOString()
+    .split("T")[0];
+
   async function handleSubmit() {
-    const parsedAge = Number(age);
     const nameRegex = /^[\p{L}\s''.\-]{2,}$/u;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!studentName.trim() || !age.trim() || !educationLevel || !gradeYear || !studentEmail.trim()) {
-      setError("Agrega nombre, edad, grado escolar y correo del estudiante para crear el perfil.");
+    if (!studentName.trim() || !birthDate || !educationLevel || !gradeYear) {
+      setError("Agrega nombre, fecha de nacimiento y grado escolar para crear el perfil.");
       return;
     }
 
@@ -74,12 +90,13 @@ export default function StudentOnboardingPage() {
       return;
     }
 
-    if (!Number.isInteger(parsedAge) || parsedAge < 6) {
-      setError("La edad debe ser de 6 años o más.");
+    const studentAge = calcAge(birthDate);
+    if (studentAge < 4 || studentAge > 25) {
+      setError("La edad debe ser entre 4 y 25 años.");
       return;
     }
 
-    if (!emailRegex.test(studentEmail.trim())) {
+    if (studentEmail.trim() && !emailRegex.test(studentEmail.trim())) {
       setError("El correo ingresado no es válido.");
       return;
     }
@@ -90,7 +107,7 @@ export default function StudentOnboardingPage() {
     try {
       const result = await createStudent(
         studentName,
-        age,
+        birthDate,
         educationLevel,
         gradeYear,
         supportLevel,
@@ -128,14 +145,15 @@ export default function StudentOnboardingPage() {
             ¡Todo listo! 🌟
           </h1>
           <p className="mt-4 text-base font-bold leading-6 text-amiko-muted">
-            ¡Te damos la bienvenida a la familia AMIKO! Estamos muy felices de acompañarte a ti y a <span className="text-amiko-blue font-black">{studentName.trim()}</span> en sus tareas escolares.
+            ¡Te damos la bienvenida a la familia AMIKO! Estamos muy felices de acompañarte a ti y a{" "}
+            <span className="text-amiko-blue font-black">{studentName.trim()}</span> en sus tareas escolares.
           </p>
 
           <button
             type="button"
             onClick={() => {
               router.refresh();
-              router.push("/dashboard");
+              router.push("/inicio");
             }}
             className="focus-ring mt-8 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-green px-6 text-lg font-black text-white shadow-card transition hover:opacity-90"
           >
@@ -159,10 +177,8 @@ export default function StudentOnboardingPage() {
           </Link>
           <button
             type="button"
-            onClick={() => {
-              router.push("/dashboard");
-            }}
-            className="focus-ring rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-black text-amiko-muted transition hover:border-amiko-green hover:bg-amiko-mint hover:text-green-800"
+            onClick={() => router.push("/inicio")}
+            className="focus-ring rounded-full bg-amiko-green px-5 py-2 text-sm font-black text-white shadow-sm transition hover:opacity-90"
           >
             Saltar por ahora
           </button>
@@ -186,7 +202,6 @@ export default function StudentOnboardingPage() {
           Creemos un perfil simple para adaptar tareas con más cuidado.
         </p>
 
-
         <div className="mt-5 space-y-4">
           <Field
             label="Nombre o apodo del estudiante"
@@ -194,27 +209,26 @@ export default function StudentOnboardingPage() {
             onChange={setStudentName}
           />
 
-          {/* Age — text+inputMode to avoid browser number-input quirks (negatives, decimals) */}
           <label className="block">
-            <span className="mb-2 block text-sm font-black text-amiko-ink">Edad</span>
+            <span className="mb-2 block text-sm font-black text-amiko-ink">Fecha de nacimiento</span>
             <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Ej: 10"
-              value={age}
-              onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
-              className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none placeholder:text-slate-400"
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              min={minStudentDate}
+              max={maxStudentDate}
+              className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none"
             />
-            <p className="mt-1.5 text-xs font-bold text-amiko-muted">A partir de 6 años</p>
+            <p className="mt-1.5 text-xs font-bold text-amiko-muted">Entre 4 y 25 años</p>
           </label>
 
           <Field
             label="Correo del estudiante"
             type="email"
-            placeholder="Ej: nombre@escuela.com"
+            placeholder="correo@escuela.com"
             value={studentEmail}
             onChange={setStudentEmail}
+            optional
           />
 
           <fieldset className="space-y-3">
@@ -278,14 +292,14 @@ export default function StudentOnboardingPage() {
           <label className="block">
             <span className="mb-1 flex items-center justify-between text-sm font-black text-amiko-ink">
               <span>¿Qué le ayuda a aprender mejor?</span>
-              <span className="text-xs text-amiko-muted">Opcional</span>
+              <span className="text-xs font-bold text-amiko-muted">Opcional</span>
             </span>
             <p className="mb-2 text-xs font-bold leading-5 text-amiko-muted">
               Amiko usa esto para adaptar las tareas a su estilo. Por ejemplo: si le cuesta leer mucho texto, si prefiere listas cortas, si los colores suaves le ayudan a concentrarse, o si necesita pasos muy pequeños.
             </p>
             <input
               type="text"
-              placeholder="Ej: pasos cortos, poco texto, colores suaves"
+              placeholder="pasos cortos, poco texto, colores suaves"
               value={visualPreferences}
               onChange={(event) => setVisualPreferences(event.target.value)}
               className="focus-ring w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base font-bold text-amiko-ink outline-none placeholder:text-slate-400"

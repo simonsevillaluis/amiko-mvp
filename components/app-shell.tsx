@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { FloatingModeToggle } from "@/components/floating-mode-toggle";
 import { CHAT_HOME_PATH, withChatFrom } from "@/lib/chat-navigation";
 
 const navItems: Array<{ href: string; label: string; icon: AmikoIconName }> = [
@@ -99,6 +100,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-[430px] px-4 py-5 lg:max-w-5xl lg:px-8 lg:py-8">
         {children}
       </main>
+
+      <FloatingModeToggle mode="adult" />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-1 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl">
         <div className="mx-auto grid max-w-[430px] grid-cols-4 lg:max-w-3xl">

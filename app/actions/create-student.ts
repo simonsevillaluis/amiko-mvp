@@ -16,9 +16,18 @@ const educationLevelLabels: Record<EducationLevel, string> = {
 
 const nameRegex = /^[\p{L}\s'.\-]{2,}$/u;
 
+function calcAge(birthDate: string): number {
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 export async function createStudent(
   studentName: string,
-  age: string,
+  birthDate: string,
   educationLevel: string,
   gradeYear: string,
   supportLevel: string,
@@ -26,15 +35,12 @@ export async function createStudent(
   studentEmail?: string,
 ): Promise<CreateStudentResult> {
   const trimmedName = studentName.trim();
-  const parsedAge = Number(age);
   const trimmedGradeYear = gradeYear.trim();
   const trimmedVisualPreferences = visualPreferences.trim();
   const trimmedEmail = studentEmail?.trim() ?? "";
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const supportedLevels = ["bajo", "medio", "alto"];
 
-  if (!trimmedName || !age.trim() || !educationLevel || !trimmedGradeYear || !trimmedEmail) {
-    return { success: false, error: "Agrega nombre, edad, grado escolar y correo del estudiante para crear el perfil." };
+  if (!trimmedName || !birthDate || !educationLevel || !trimmedGradeYear) {
+    return { success: false, error: "Agrega nombre, fecha de nacimiento y grado escolar para crear el perfil." };
   }
 
   if (!nameRegex.test(trimmedName)) {
@@ -44,11 +50,18 @@ export async function createStudent(
     };
   }
 
-  if (!Number.isInteger(parsedAge) || parsedAge < 4 || parsedAge > 25) {
-    return { success: false, error: "La edad debe ser un número entre 4 y 25 años." };
+  const birthDateObj = new Date(birthDate);
+  if (isNaN(birthDateObj.getTime())) {
+    return { success: false, error: "Fecha de nacimiento no válida." };
   }
 
-  if (!emailRegex.test(trimmedEmail)) {
+  const age = calcAge(birthDate);
+  if (age < 4 || age > 25) {
+    return { success: false, error: "La edad debe ser entre 4 y 25 años." };
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (trimmedEmail && !emailRegex.test(trimmedEmail)) {
     return { success: false, error: "El correo ingresado no es válido." };
   }
 
@@ -56,7 +69,13 @@ export async function createStudent(
     return { success: false, error: "Selecciona un nivel educativo válido." };
   }
 
-  const support = supportedLevels.includes(supportLevel) ? supportLevel : "medio";
+  const supportMap: Record<string, string> = {
+    bajo: "bajo",
+    medio: "medio",
+    alto: "alto",
+    no_seguro: "medio",
+  };
+  const support = supportMap[supportLevel] ?? "medio";
   const schoolGrade = `${educationLevelLabels[educationLevel as EducationLevel]} · ${trimmedGradeYear}`;
 
   const supabase = await createClient();
@@ -71,7 +90,8 @@ export async function createStudent(
   const { error: insertError } = await supabase.from("student_profiles").insert({
     user_id: user.id,
     name: trimmedName,
-    age: parsedAge,
+    age,
+    birth_date: birthDate,
     school_grade: schoolGrade,
     support_level: support,
     visual_preferences: trimmedVisualPreferences || null,

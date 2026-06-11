@@ -177,6 +177,7 @@ export async function POST(request: Request) {
   // 3. Try NVIDIA NIM API (hosting high-perf models like Llama 3 / DeepSeek)
   if (!adaptation && process.env.NVIDIA_API_KEY) {
     const nimModels = [
+      "nvidia/nemotron-3-ultra-550b-a55b",
       "moonshotai/kimi-k2.6",
       "meta/llama-3.1-70b-instruct",
       "deepseek-ai/deepseek-v4-flash",

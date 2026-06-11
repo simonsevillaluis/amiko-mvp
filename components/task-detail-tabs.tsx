@@ -54,6 +54,9 @@ const CHIPS = [
   { label: "Ajustar la dificultad",  api: "¿Puedes proponer cómo ajustar el nivel de esta tarea?" },
 ];
 
+const LIKE_TAGS = ["Pasos claros", "Fácil de entender", "Apoyos útiles", "Buen nivel", "Otro"];
+const DISLIKE_TAGS = ["Pasos confusos", "Muy extensa", "Muy corta", "Apoyos no útiles", "Dificultad incorrecta", "Otro"];
+
 const TABS: { id: Tab; label: string; icon: "resources" | "chat" | "sparkles" }[] = [
   { id: "materiales", label: "Materiales", icon: "resources" },
   { id: "amiko",      label: "Amiko",      icon: "chat"      },
@@ -76,6 +79,22 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
   const [inputText, setInputText] = useState("");
   const [typing, setTyping] = useState(false);
   const [chipsVisible, setChipsVisible] = useState(true);
+
+  const [feedback, setFeedback] = useState<"like" | "dislike" | null>(null);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState<"like" | "dislike" | null>(null);
+  const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
+  const [hints, setHints] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<{ q: string; a: string }[]>([]);
+  const [loadingHints, setLoadingHints] = useState(false);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [revealedHints, setRevealedHints] = useState(0);
+  const [openQuestion, setOpenQuestion] = useState<number | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`amiko_task_feedback_${task.id}`);
+    if (stored === "like" || stored === "dislike") setFeedback(stored);
+  }, [task.id]);
 
   const messagesRef = useRef<Message[]>(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -127,6 +146,71 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
     setTyping(false);
     setMessages((prev) => [...prev, { id: `a_${Date.now()}`, role: "amiko", text }]);
   }, []);
+
+  function speakSummary() {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (audioPlaying) {
+      window.speechSynthesis.cancel();
+      setAudioPlaying(false);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const text = adaptation
+      ? [adaptation.simple_summary, ...adaptation.steps.map((s) => `Paso ${s.number}: ${s.instruction}`)].join(". ")
+      : "";
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "es-ES";
+    utterance.rate = 0.9;
+    utterance.onend = () => setAudioPlaying(false);
+    utterance.onerror = () => setAudioPlaying(false);
+    window.speechSynthesis.speak(utterance);
+    setAudioPlaying(true);
+  }
+
+  async function generateHints() {
+    if (loadingHints) return;
+    setLoadingHints(true);
+    setHints([]);
+    setRevealedHints(0);
+    try {
+      const res = await fetch("/api/task-resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskText: task.original_text, type: "hints", count: 3 }),
+      });
+      const data = await res.json() as { hints?: string[] };
+      if (data.hints) setHints(data.hints);
+    } catch { /* silent */ }
+    finally { setLoadingHints(false); }
+  }
+
+  async function generateQuestions() {
+    if (loadingQuestions) return;
+    setLoadingQuestions(true);
+    setQuestions([]);
+    try {
+      const res = await fetch("/api/task-resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskText: task.original_text, type: "questions", count: 3 }),
+      });
+      const data = await res.json() as { questions?: { q: string; a: string }[] };
+      if (data.questions) setQuestions(data.questions);
+    } catch { /* silent */ }
+    finally { setLoadingQuestions(false); }
+  }
+
+  function handleFeedback(value: "like" | "dislike") {
+    setFeedback(value);
+    setShowFeedbackDialog(value);
+  }
+
+  function submitFeedback() {
+    if (feedback) localStorage.setItem(`amiko_task_feedback_${task.id}`, feedback);
+    setShowFeedbackDialog(null);
+    setFeedbackTags([]);
+  }
 
   const handleSend = useCallback((text: string) => {
     const trimmed = text.trim();
@@ -398,6 +482,124 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
                   </div>
                 )}
 
+                {/* ── Recursos ── */}
+                <div className="rounded-3xl border border-blue-100 bg-white p-4 shadow-card">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.16em] text-amiko-muted">
+                    Recursos para el acompañamiento
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Audio */}
+                    <button
+                      type="button"
+                      onClick={speakSummary}
+                      className="focus-ring flex items-center gap-2 rounded-2xl border border-blue-100 bg-slate-50 px-3 py-3 text-left transition hover:bg-amiko-sky"
+                    >
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${audioPlaying ? "bg-amiko-coral text-white" : "bg-amiko-blue text-white"}`}>
+                        <AmikoIcon name={audioPlaying ? "pause" : "mic"} className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-amiko-ink">{audioPlaying ? "Detener" : "Escuchar"}</span>
+                        <span className="block text-[10px] font-bold text-amiko-muted">Resumen de voz</span>
+                      </span>
+                    </button>
+
+                    {/* Pistas */}
+                    <button
+                      type="button"
+                      onClick={() => hints.length ? setRevealedHints(0) : generateHints()}
+                      disabled={loadingHints}
+                      className="focus-ring flex items-center gap-2 rounded-2xl border border-blue-100 bg-slate-50 px-3 py-3 text-left transition hover:bg-amiko-sky disabled:opacity-60"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amiko-cream text-xl">💡</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-amiko-ink">{loadingHints ? "Generando…" : "Pistas"}</span>
+                        <span className="block text-[10px] font-bold text-amiko-muted">{hints.length ? `${hints.length} pistas` : "Generar con IA"}</span>
+                      </span>
+                    </button>
+
+                    {/* Preguntas */}
+                    <button
+                      type="button"
+                      onClick={() => questions.length ? setOpenQuestion(null) : generateQuestions()}
+                      disabled={loadingQuestions}
+                      className="focus-ring flex items-center gap-2 rounded-2xl border border-blue-100 bg-slate-50 px-3 py-3 text-left transition hover:bg-amiko-sky disabled:opacity-60"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amiko-mint text-xl">❓</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-amiko-ink">{loadingQuestions ? "Generando…" : "Preguntas"}</span>
+                        <span className="block text-[10px] font-bold text-amiko-muted">{questions.length ? `${questions.length} preguntas` : "Quick questions"}</span>
+                      </span>
+                    </button>
+
+                    {/* ARASAAC Premium */}
+                    <div className="relative flex items-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white px-3 py-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl">🖼️</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-slate-400">Pictogramas</span>
+                        <span className="block text-[10px] font-bold text-slate-400">ARASAAC</span>
+                      </span>
+                      <span className="absolute right-2 top-1.5 rounded-full bg-amiko-cream px-1.5 py-0.5 text-[9px] font-black text-amiko-navy">
+                        Premium
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Hints revealed */}
+                  {hints.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-muted">
+                        Pista {revealedHints + 1} de {hints.length}
+                      </p>
+                      {hints.slice(0, revealedHints + 1).map((hint, i) => (
+                        <div key={i} className="flex items-start gap-2 rounded-xl bg-amiko-cream px-3 py-2.5">
+                          <span className="mt-0.5 text-base">💡</span>
+                          <p className="flex-1 text-sm font-bold leading-5 text-amiko-navy">{hint}</p>
+                        </div>
+                      ))}
+                      {revealedHints < hints.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setRevealedHints((r) => r + 1)}
+                          className="focus-ring w-full rounded-xl border border-dashed border-amiko-blue py-2 text-xs font-black text-amiko-blue transition hover:bg-amiko-sky"
+                        >
+                          Ver siguiente pista →
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Questions */}
+                  {questions.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-muted">
+                        Preguntas rápidas
+                      </p>
+                      {questions.map((q, i) => (
+                        <div key={i} className="overflow-hidden rounded-xl border border-blue-100 bg-white">
+                          <button
+                            type="button"
+                            onClick={() => setOpenQuestion(openQuestion === i ? null : i)}
+                            className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
+                          >
+                            <span className="text-sm">❓</span>
+                            <span className="flex-1 text-sm font-black text-amiko-ink">{q.q}</span>
+                            <AmikoIcon
+                              name="chevron"
+                              className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${openQuestion === i ? "rotate-90" : ""}`}
+                            />
+                          </button>
+                          {openQuestion === i && (
+                            <div className="border-t border-blue-50 bg-amiko-sky px-3 py-2.5">
+                              <p className="text-xs font-bold leading-5 text-amiko-navy">✅ {q.a}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Action buttons ── */}
                 <div className="space-y-3 pt-1">
                   <Link
                     href={`/paso-a-paso/${task.id}`}
@@ -413,6 +615,37 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
                     <AmikoIcon name="journal" className="h-5 w-5" />
                     Registrar cómo fue
                   </Link>
+                </div>
+
+                {/* ── Feedback ── */}
+                <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-4 py-3">
+                  <p className="text-xs font-black text-amiko-muted">¿Fue útil esta adaptación?</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFeedback("like")}
+                      aria-label="Fue útil"
+                      className={`focus-ring flex h-9 w-9 items-center justify-center rounded-full border-2 text-lg transition ${
+                        feedback === "like"
+                          ? "border-amiko-green bg-amiko-mint"
+                          : "border-slate-200 bg-white hover:border-amiko-green hover:bg-amiko-mint"
+                      }`}
+                    >
+                      👍
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFeedback("dislike")}
+                      aria-label="Puede mejorar"
+                      className={`focus-ring flex h-9 w-9 items-center justify-center rounded-full border-2 text-lg transition ${
+                        feedback === "dislike"
+                          ? "border-amiko-coral bg-red-50"
+                          : "border-slate-200 bg-white hover:border-amiko-coral hover:bg-red-50"
+                      }`}
+                    >
+                      👎
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (
@@ -436,6 +669,64 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
           </div>
         )}
       </main>
+
+      {/* ── Feedback dialog ── */}
+      {showFeedbackDialog && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-amiko-navy/50 px-4 pb-6 backdrop-blur-sm"
+          onClick={() => setShowFeedbackDialog(null)}
+        >
+          <div
+            className="w-full max-w-[430px] rounded-3xl bg-white p-6 shadow-soft"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{showFeedbackDialog === "like" ? "👍" : "👎"}</span>
+                <h3 className="text-lg font-black text-amiko-navy">
+                  {showFeedbackDialog === "like" ? "¿Qué estuvo bien?" : "¿Qué podría mejorar?"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFeedbackDialog(null)}
+                className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-amiko-muted"
+              >
+                <AmikoIcon name="close" className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(showFeedbackDialog === "like" ? LIKE_TAGS : DISLIKE_TAGS).map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() =>
+                    setFeedbackTags((t) =>
+                      t.includes(tag) ? t.filter((x) => x !== tag) : [...t, tag]
+                    )
+                  }
+                  className={`focus-ring rounded-full border px-3 py-1.5 text-sm font-black transition ${
+                    feedbackTags.includes(tag)
+                      ? showFeedbackDialog === "like"
+                        ? "border-amiko-green bg-amiko-mint text-green-800"
+                        : "border-amiko-coral bg-red-50 text-amiko-coral"
+                      : "border-slate-200 bg-white text-amiko-muted hover:border-amiko-blue hover:bg-amiko-sky"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={submitFeedback}
+              className="focus-ring mt-4 flex w-full items-center justify-center rounded-full bg-amiko-blue py-3 text-sm font-black text-white shadow-card transition hover:brightness-95"
+            >
+              Enviar comentario
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Bottom contextual tab bar ── */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl">

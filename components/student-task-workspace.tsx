@@ -63,9 +63,9 @@ function WorkspaceTabBar({
   onChange: (t: WorkspaceTab) => void;
 }) {
   const tabs: { id: WorkspaceTab; imgUrl?: string; label: string }[] = [
-    { id: "pasos",    imgUrl: "https://img.icons8.com/3d-fluency/94/clipboard.png", label: "Pasos"    },
+    { id: "pasos",    imgUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png", label: "Pasos"    },
     { id: "amiko",                                                                   label: "Amiko"    },
-    { id: "recursos", imgUrl: "https://img.icons8.com/3d-fluency/94/toolbox.png",   label: "Recursos" },
+    { id: "recursos", imgUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Toolbox/3D/toolbox_3d.png",   label: "Recursos" },
   ];
   return (
     <nav className="shrink-0 border-t border-slate-100 bg-white">
@@ -87,7 +87,7 @@ function WorkspaceTabBar({
               >
                 {tab.imgUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={tab.imgUrl} alt={tab.label} className="h-6 w-6 object-contain" />
+                  <img src={tab.imgUrl} alt={tab.label} className="h-6 w-6 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                 ) : (
                   <AmikoMark className="h-6 w-6" />
                 )}
@@ -339,6 +339,7 @@ function FuentesTab({
             src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
             alt={task.rewardIcon}
             className="h-10 w-10 shrink-0 object-contain"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
           />
           <p className="font-black text-amiko-ink">{task.reward}</p>
         </div>
@@ -483,7 +484,7 @@ function RecursosTab({
             <div className="mb-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://img.icons8.com/3d-fluency/94/teacher.png" alt="" className="h-5 w-5 object-contain" />
+                <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Woman%20teacher/3D/woman_teacher_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-blue">
                   Nota de tu tutor
                 </p>
@@ -524,7 +525,7 @@ function RecursosTab({
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://img.icons8.com/3d-fluency/94/idea.png" alt="" className="h-5 w-5 object-contain" />
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
             {hintLevel === 0
               ? "Pedir una pista"
               : hintLevel < 3
@@ -547,9 +548,10 @@ function RecursosTab({
                   <div className="flex items-center gap-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={unlocked ? "https://img.icons8.com/3d-fluency/94/idea.png" : "https://img.icons8.com/3d-fluency/94/lock.png"}
+                      src={unlocked ? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png" : "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Locked/3D/locked_3d.png"}
                       alt=""
                       className="h-5 w-5 object-contain"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
                     />
                     <span
                       className={`text-sm font-black ${
@@ -734,6 +736,7 @@ function DoneScreen({
           alt=""
           className="pointer-events-none absolute h-8 w-8 animate-sparkle object-contain"
           style={style}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
         />
       ))}
 
@@ -753,6 +756,7 @@ function DoneScreen({
           alt="Trofeo"
           className="mt-2 h-16 w-16 animate-slide-up object-contain"
           style={{ animationDelay: "0.2s" }}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
         />
 
         {/* Congratulations */}
@@ -785,6 +789,7 @@ function DoneScreen({
             src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
             alt={task.rewardIcon}
             className="h-12 w-12 shrink-0 object-contain"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
           />
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-green">
@@ -816,7 +821,7 @@ function DoneScreen({
                   className="flex flex-col items-center gap-1 rounded-2xl border border-slate-100 p-3 transition hover:bg-amiko-sky active:scale-95"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={opt.imgUrl} alt={opt.label} className="h-9 w-9 object-contain" />
+                  <img src={opt.imgUrl} alt={opt.label} className="h-9 w-9 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                   <span className="text-[10px] font-black text-amiko-muted">{opt.label}</span>
                 </button>
               ))}
@@ -844,7 +849,7 @@ function DoneScreen({
             className="min-h-12 rounded-full bg-amiko-blue px-6 text-sm font-black text-white shadow-card transition hover:brightness-95"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sparkles/3D/sparkles_3d.png" alt="" className="inline h-5 w-5 object-contain" />
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sparkles/3D/sparkles_3d.png" alt="" className="inline h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
             {" "}Ver actividades de cierre
           </button>
           <button
@@ -995,6 +1000,7 @@ export function StudentTaskWorkspace({
                 src={REWARD_IMG[task.rewardIcon] ?? "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"}
                 alt={task.rewardIcon}
                 className="h-12 w-12 shrink-0 object-contain"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
               />
               <p className="text-xl font-black text-amiko-ink">{task.reward}</p>
             </div>

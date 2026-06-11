@@ -79,7 +79,6 @@ NUNCA menciones diagnósticos ni condiciones médicas.`;
 
 // ─── Image helpers ─────────────────────────────────────────────────────────────
 
-// Spanish → English for Pollinations.ai prompts (better image quality with English)
 const ES_EN: Record<string, string> = {
   "arcoiris": "colorful rainbow", "arco iris": "colorful rainbow",
   "gato": "cat", "gatito": "cute kitten", "perro": "dog", "perrito": "cute puppy",
@@ -113,25 +112,28 @@ function buildPollinationsUrl(subject: string): string {
 
 // ─── ARASAAC helpers ───────────────────────────────────────────────────────────
 
-async function searchArasaac(keyword: string): Promise<string | null> {
+async function searchArasaac(keyword: string, signal: AbortSignal): Promise<string | null> {
   try {
-    const res = await fetch(`https://api.arasaac.org/api/pictograms/es/search/${encodeURIComponent(keyword)}`);
+    const res = await fetch(
+      `https://api.arasaac.org/api/pictograms/es/search/${encodeURIComponent(keyword)}`,
+      { signal }
+    );
     if (!res.ok) return null;
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0 && data[0]?._id) {
       return String(data[0]._id);
     }
   } catch (err) {
-    console.error("ARASAAC search error:", err);
+    if ((err as Error).name !== "AbortError") console.error("ARASAAC search error:", err);
   }
   return null;
 }
 
-async function resolveTermToArasaac(term: string): Promise<string | null> {
+async function resolveTermToArasaac(term: string, signal: AbortSignal): Promise<string | null> {
   const cleanTerm = term.trim().toLowerCase().replace(/\barcoiris\b/g, "arco iris");
   if (!cleanTerm) return null;
 
-  let id = await searchArasaac(cleanTerm);
+  let id = await searchArasaac(cleanTerm, signal);
   if (id) return id;
 
   const stopWords = new Set([
@@ -141,7 +143,7 @@ async function resolveTermToArasaac(term: string): Promise<string | null> {
   ]);
   const words = cleanTerm.split(/[\s_-]+/).filter(w => w.length > 1 && !stopWords.has(w));
   for (const word of words) {
-    id = await searchArasaac(word);
+    id = await searchArasaac(word, signal);
     if (id) return id;
   }
   return null;
@@ -149,8 +151,6 @@ async function resolveTermToArasaac(term: string): Promise<string | null> {
 
 // ─── Image post-processing ─────────────────────────────────────────────────────
 
-// Replace only LoremFlickr/placehold.co (bad fallbacks) with real Pollinations.ai URLs.
-// Keep Pollinations.ai and ARASAAC URLs untouched.
 function processImageMarkdownAndFallback(text: string): string {
   return text.replace(
     /!\[(.*?)\]\((https?:\/\/(?:loremflickr\.com|placehold\.co)[^)]*)\)/g,
@@ -158,10 +158,11 @@ function processImageMarkdownAndFallback(text: string): string {
   );
 }
 
-// Detect image request that AI didn't generate, and append an image.
-// Priority: ARASAAC (educational pictograms) → Pollinations.ai (creative images)
-async function detectAndAppendImage(userMessage: string, aiText: string): Promise<string> {
-  // Skip if AI already returned an image
+async function detectAndAppendImage(
+  userMessage: string,
+  aiText: string,
+  signal: AbortSignal
+): Promise<string> {
   if (aiText.includes("![") && aiText.includes("](")) return aiText;
 
   const cleanUser = userMessage.toLowerCase();
@@ -172,7 +173,6 @@ async function detectAndAppendImage(userMessage: string, aiText: string): Promis
     "imagen de", "dibujo de", "pictograma de", "muestra un", "muestra una",
     "hazme una imagen de", "hazme una imagen", "hazme un dibujo de", "hazme un dibujo",
     "y con una imagen", "con una imagen",
-    // common typos
     "hazme una imangen", "hazme una imangen de", "hazme una iamgen", "hazme una iamgen de",
     "y con una imangen", "con una imangen",
   ];
@@ -189,9 +189,7 @@ async function detectAndAppendImage(userMessage: string, aiText: string): Promis
   if (!words.length) return aiText;
 
   const subject = words.slice(0, 3).join(" ");
-  console.log("[detectAndAppendImage] subject:", subject);
-
-  const arasaacId = await resolveTermToArasaac(subject);
+  const arasaacId = await resolveTermToArasaac(subject, signal);
   const imgUrl = arasaacId
     ? `https://static.arasaac.org/pictograms/${arasaacId}/${arasaacId}_300.png`
     : buildPollinationsUrl(subject);
@@ -201,13 +199,17 @@ async function detectAndAppendImage(userMessage: string, aiText: string): Promis
 
 // ─── LLM helpers ──────────────────────────────────────────────────────────────
 
+// 12 seconds per provider — keeps total chain under Vercel's 60s function limit
+const PROVIDER_TIMEOUT_MS = 12_000;
+
 async function callOpenAiChatAPI(
   apiUrl: string,
   modelName: string,
   apiKey: string,
   systemPrompt: string,
   history: { role: string; text: string }[],
-  message: string
+  message: string,
+  parentSignal: AbortSignal
 ): Promise<string> {
   const messages = [
     { role: "system", content: systemPrompt },
@@ -218,36 +220,47 @@ async function callOpenAiChatAPI(
     { role: "user", content: message },
   ];
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: modelName, messages, temperature: 0.7 }),
-  });
+  // Combine per-provider timeout with parent (client disconnect) signal
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("Provider timeout")), PROVIDER_TIMEOUT_MS);
+  const onParentAbort = () => controller.abort(parentSignal.reason);
+  parentSignal.addEventListener("abort", onParentAbort, { once: true });
 
-  if (!response.ok) {
-    throw new Error(`API error (${response.status}): ${await response.text()}`);
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: modelName, messages, temperature: 0.7 }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error (${response.status}): ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Invalid API response: choices[0].message.content missing");
+    return content;
+  } finally {
+    clearTimeout(timer);
+    parentSignal.removeEventListener("abort", onParentAbort);
   }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Invalid API response: choices[0].message.content missing");
-  return content;
 }
 
 function generateMockChatMessage(mode: string, studentName: string): string {
   const name = studentName || "el estudiante";
-  if (mode === "student") {
-    return `¡Hola! Me encanta tu idea. Para tareas como esa, podemos ir de a poquito, paso a paso. 🌟\n\n*(Nota para el evaluador: El chat está en modo de demostración porque no se han configurado las API Keys de Inteligencia Artificial en las variables de entorno de Vercel o local. Por favor, añade GEMINI_API_KEY o DEEPSEEK_API_KEY para activar respuestas reales).*`;
-  }
-  if (mode === "calma") return `Para acompañar a ${name}, pausa 5 minutos y ofrece agua o un estiramiento. Retomen cuando esté más tranquilo. 💙`;
-  if (mode === "registro") return `Anotado. Registrar qué funcionó hoy con ${name} ayuda a ajustar el apoyo mañana. 📝`;
-  if (mode === "mensajes") return `Para escribirle al docente de ${name}: explica qué paso costó más y sugiere un ajuste en el apoyo visual. ✉️`;
-  return `Para empezar la tarea con ${name}: lean las instrucciones en voz alta y hagan solo el primer paso. 🌟`;
+  if (mode === "calma") return `Para acompañar a ${name} con calma: respirá junto a él/ella por 30 segundos y ofrecé un vaso de agua. Retomen cuando esté más tranquilo/a. 💙`;
+  if (mode === "registro") return `Anotado. Registrar qué funcionó hoy con ${name} ayuda a ajustar el apoyo mañana. ¿Querés que lo organicemos en pasos? 📝`;
+  if (mode === "mensajes") return `Para escribirle al docente de ${name}: explicá qué paso costó más y sugerí un ajuste en el apoyo visual. ¿Quieres que preparemos el mensaje juntos? ✉️`;
+  return `Para empezar la tarea con ${name}: lean las instrucciones en voz alta y hagan solo el primer paso. Si necesitás más ayuda, contame qué dice la tarea y la dividimos juntos. 🌟`;
 }
 
 // ─── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
+  const clientSignal = request.signal;
+
   let history: { role: string; text: string }[] = [];
   let message = "";
   let studentName = "";
@@ -284,10 +297,16 @@ export async function POST(request: Request) {
       const chat = model.startChat({
         history: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
       });
-      replyText = (await chat.sendMessage(message)).response.text();
+
+      // Gemini SDK doesn't accept AbortSignal directly — wrap in Promise.race with timeout
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini timeout")), PROVIDER_TIMEOUT_MS)
+      );
+      const geminiPromise = chat.sendMessage(message);
+      replyText = (await Promise.race([geminiPromise, timeoutPromise])).response.text();
       success = true;
     } catch (err) {
-      console.error("Gemini error:", err);
+      console.error("[chat] Gemini failed:", (err as Error).message);
     }
   }
 
@@ -298,48 +317,52 @@ export async function POST(request: Request) {
         "https://api.deepseek.com/v1/chat/completions",
         "deepseek-chat",
         process.env.DEEPSEEK_API_KEY,
-        systemInstruction, history, message
+        systemInstruction, history, message,
+        clientSignal
       );
       success = true;
     } catch (err) {
-      console.error("DeepSeek error:", err);
+      console.error("[chat] DeepSeek failed:", (err as Error).message);
     }
   }
 
-  // 3. NVIDIA NIM
+  // 3. NVIDIA NIM — try reliable models in order, stop at first success
   if (!success && process.env.NVIDIA_API_KEY) {
     const nimModels = [
-      "moonshotai/kimi-k2.6",
       "meta/llama-3.1-70b-instruct",
-      "nvidia/llama-3.1-nemotron-70b-instruct"
+      "nvidia/llama-3.1-nemotron-70b-instruct",
+      "meta/llama-3.3-70b-instruct",
     ];
     for (const nimModel of nimModels) {
+      if (clientSignal.aborted) break;
       try {
         replyText = await callOpenAiChatAPI(
           "https://integrate.api.nvidia.com/v1/chat/completions",
           nimModel,
           process.env.NVIDIA_API_KEY,
-          systemInstruction, history, message
+          systemInstruction, history, message,
+          clientSignal
         );
         success = true;
         break;
       } catch (err) {
-        console.error(`NVIDIA NIM ${nimModel} error:`, err);
+        console.error(`[chat] NVIDIA NIM ${nimModel} failed:`, (err as Error).message);
       }
     }
   }
 
-  // 4. Mock fallback
+  // 4. Generic helpful fallback (never exposes API key status to users)
   if (!success) {
+    console.warn("[chat] All providers failed — using generic fallback");
     replyText = generateMockChatMessage(mode, studentName);
   }
 
   // Post-process: fix bad image URLs, detect missing images
   try {
     replyText = processImageMarkdownAndFallback(replyText);
-    replyText = await detectAndAppendImage(message, replyText);
+    replyText = await detectAndAppendImage(message, replyText, clientSignal);
   } catch (err) {
-    console.error("Image post-processing error:", err);
+    if ((err as Error).name !== "AbortError") console.error("[chat] Image post-processing error:", err);
   }
 
   return NextResponse.json({ text: replyText });
