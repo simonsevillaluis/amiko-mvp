@@ -71,17 +71,67 @@ export function StudentSettingsPanel({ onClose }: { onClose: () => void }) {
               }`}
             >
               <span
-                className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
-                  studentSound && tutorAllows ? "translate-x-5" : "translate-x-0.5"
+                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
+                  studentSound && tutorAllows ? "translate-x-[20px]" : "translate-x-0"
                 }`}
               />
             </button>
           </div>
         </div>
 
-        <p className="mt-4 text-center text-xs font-bold text-amiko-muted">
-          Más ajustes próximamente.
-        </p>
+        {/* Night mode row (coming soon) */}
+        <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 opacity-60">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-base font-black text-slate-500">Modo nocturno</p>
+                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-500">Próximamente</span>
+              </div>
+              <p className="mt-0.5 text-sm font-bold text-slate-400">
+                Colores oscuros y menos brillo para descansar la vista.
+              </p>
+            </div>
+            <div className="relative h-7 w-12 shrink-0 rounded-full bg-slate-200 opacity-60">
+              <span className="absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Big letters row (coming soon) */}
+        <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 opacity-60">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-base font-black text-slate-500">Letras grandes</p>
+                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-500">Próximamente</span>
+              </div>
+              <p className="mt-0.5 text-sm font-bold text-slate-400">
+                Aumenta el tamaño del texto para leer más fácil.
+              </p>
+            </div>
+            <div className="relative h-7 w-12 shrink-0 rounded-full bg-slate-200 opacity-60">
+              <span className="absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Less stimuli row (coming soon) */}
+        <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 opacity-60">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-base font-black text-slate-500">Reducir estímulos</p>
+                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-500">Próximamente</span>
+              </div>
+              <p className="mt-0.5 text-sm font-bold text-slate-400">
+                Oculta animaciones y colores fuertes si hay sobrecarga.
+              </p>
+            </div>
+            <div className="relative h-7 w-12 shrink-0 rounded-full bg-slate-200 opacity-60">
+              <span className="absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

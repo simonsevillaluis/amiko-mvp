@@ -8,7 +8,7 @@ import { soundSettings } from "@/lib/student-sound-settings";
 
 const breakActivityEmojis: Record<string, string> = {
   water: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Droplet/3D/droplet_3d.png",
-  stretch: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20cartwheeling/3D/person_cartwheeling_3d.png",
+  stretch: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Flexed%20biceps/Default/3D/flexed_biceps_3d_default.png",
   draw: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Artist%20palette/3D/artist_palette_3d.png",
   eyes: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Zzz/3D/zzz_3d.png",
   calm: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20in%20lotus%20position/Default/3D/person_in_lotus_position_3d_default.png",
