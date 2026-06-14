@@ -3,12 +3,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
-import { createClient } from "@/lib/supabase/server";
-import { getOrSyncProfile } from "@/lib/supabase/profile";
 import { TaskCard, type TaskStatus } from "@/components/task-card";
+import { getOrSyncProfile } from "@/lib/supabase/profile";
+import { createClient } from "@/lib/supabase/server";
+import { getStudentProfiles } from "@/lib/supabase/students";
+import { studentInitial } from "@/lib/student-format";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ studentId?: string }>;
+}) {
   const supabase = await createClient();
+  const resolvedSearchParams = await searchParams;
 
   const {
     data: { user },
@@ -18,9 +25,10 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Obtener perfil del adulto para mostrar su nombre real
-  // (getOrSyncProfile completa full_name/role desde los metadatos de auth si faltan)
-  const profile = await getOrSyncProfile(user.id);
+  const [profile, students] = await Promise.all([
+    getOrSyncProfile(user.id),
+    getStudentProfiles(),
+  ]);
 
   const metaFullName =
     (user.user_metadata?.full_name as string | undefined) ??
@@ -30,16 +38,7 @@ export default async function DashboardPage() {
     metaFullName?.trim()?.split(" ")[0] ||
     "Adulto";
 
-  // Consultar estudiantes reales del usuario
-  const { data: students } = await supabase
-    .from("student_profiles")
-    .select("id, name")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
-
-  const hasStudents = students && students.length > 0;
-
-  if (!hasStudents) {
+  if (students.length === 0) {
     return (
       <AppShell>
         <section className="mb-6">
@@ -49,23 +48,23 @@ export default async function DashboardPage() {
           </p>
         </section>
 
-        <div className="flex flex-col items-center justify-center rounded-[32px] border border-amiko-blue/15 bg-amiko-sky px-6 py-8 text-center shadow-soft mb-8">
+        <div className="mb-8 flex flex-col items-center justify-center rounded-[32px] border border-amiko-blue/15 bg-amiko-sky px-6 py-8 text-center shadow-soft">
           <div className="relative mb-5 flex justify-center">
             <Image
               src="/amiko-character/amiko-character-photo.svg"
-              alt="Mascota de AMIKO dándote la bienvenida"
+              alt="Mascota de AMIKO dandote la bienvenida"
               width={140}
               height={140}
-              className="object-contain hover:scale-105 transition-transform duration-300"
+              className="object-contain transition-transform duration-300 hover:scale-105"
               priority
             />
           </div>
 
-          <h2 className="text-2xl font-black text-amiko-navy leading-tight">
-            ¡Creemos el perfil de tu estudiante!
+          <h2 className="text-2xl font-black leading-tight text-amiko-navy">
+            Primero creemos el perfil del estudiante
           </h2>
           <p className="mt-3 max-w-[280px] text-base font-bold leading-6 text-amiko-muted">
-            Para comenzar a adaptar tareas escolares y registrar sus avances paso a paso, primero necesitamos crear su perfil pedagógico.
+            Despues de registrarlo, AMIKO usara su nombre en el dashboard, tareas y avances.
           </p>
 
           <Link
@@ -73,46 +72,45 @@ export default async function DashboardPage() {
             className="focus-ring mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-amiko-green px-6 text-lg font-black text-white shadow-card transition hover:opacity-90"
           >
             <AmikoIcon name="sparkles" className="h-5 w-5" />
-            Crear perfil pedagógico
+            Crear perfil de estudiante
           </Link>
         </div>
 
         <section>
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-black text-amiko-ink">Recursos para ti</h2>
-              <p className="mt-1 text-sm font-bold text-amiko-muted">Herramientas de apoyo y bienestar.</p>
-            </div>
+          <div className="mb-3">
+            <h2 className="text-xl font-black text-amiko-ink">Mientras tanto</h2>
+            <p className="mt-1 text-sm font-bold text-amiko-muted">
+              Puedes revisar recursos de bienestar para acompanar con calma.
+            </p>
           </div>
-          <div className="space-y-3">
-            <Link
-              href="/bienestar"
-              className="focus-ring flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amiko-cream text-amiko-coral">
-                <AmikoIcon name="calm" className="h-6 w-6" />
+          <Link
+            href="/bienestar"
+            className="focus-ring flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amiko-cream text-amiko-coral">
+              <AmikoIcon name="calm" className="h-6 w-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-black text-amiko-ink">Bienestar</span>
+              <span className="mt-1 block text-sm font-bold leading-5 text-amiko-muted">
+                Respira, baja la carga y vuelve con calma.
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-black text-amiko-ink">Bienestar</span>
-                <span className="mt-1 block text-sm font-bold leading-5 text-amiko-muted">
-                  Respira, baja la carga y vuelve con calma.
-                </span>
-              </span>
-              <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-slate-400" />
-            </Link>
-          </div>
+            </span>
+            <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-slate-400" />
+          </Link>
         </section>
       </AppShell>
     );
   }
 
-  const currentStudent = students[0];
+  const currentStudent =
+    students.find((student) => student.id === resolvedSearchParams?.studentId) ?? students[0];
   const studentId = currentStudent.id;
+  const adaptTaskHref = `/adapt-task?studentId=${studentId}`;
 
   const now = new Date();
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
-  // Consultar estadísticas en tiempo real desde Supabase para el estudiante
   const [
     { count: completedTasksCount },
     { count: stepsCompletedCount },
@@ -174,26 +172,25 @@ export default async function DashboardPage() {
   ]);
 
   const hasTasks = dbTasks && dbTasks.length > 0;
-  const tasks = dbTasks?.map((t) => {
-    const adaptation = t.adapted_tasks?.[0];
+  const tasks = dbTasks?.map((task) => {
+    const adaptation = task.adapted_tasks?.[0];
     const stepsArray = Array.isArray(adaptation?.steps) ? adaptation.steps : [];
     const totalSteps = stepsArray.length;
-    
     const completedSteps = progressEvents
       ? new Set(
           progressEvents
-            .filter((e) => e.task_id === t.id)
-            .map((e) => e.step_number)
+            .filter((event) => event.task_id === task.id)
+            .map((event) => event.step_number),
         ).size
       : 0;
 
     return {
-      id: t.id,
-      title: t.title,
-      subject: t.subject || undefined,
-      original_text: t.original_text,
-      status: t.status as TaskStatus,
-      updated_at: t.updated_at,
+      id: task.id,
+      title: task.title,
+      subject: task.subject || undefined,
+      original_text: task.original_text,
+      status: task.status as TaskStatus,
+      updated_at: task.updated_at,
       completed_steps: completedSteps,
       total_steps: totalSteps,
       simple_summary: adaptation?.simple_summary || undefined,
@@ -202,10 +199,10 @@ export default async function DashboardPage() {
   }) || [];
 
   const weekSummary = [
-    { value: String(completedTasksCount || 0), label: "Tareas acompañadas", tone: "text-amiko-green" },
+    { value: String(completedTasksCount || 0), label: "Tareas acompanadas", tone: "text-amiko-green" },
     { value: String(stepsCompletedCount || 0), label: "Pasos completados", tone: "text-amiko-blue" },
-    { value: String(helpRequestedCount || 0), label: "Veces pidió ayuda", tone: "text-amiko-navy" },
-    { value: String(frustrationReportedCount || 0), label: "Pausa que ayudó", tone: "text-amiko-coral" },
+    { value: String(helpRequestedCount || 0), label: "Veces pidio ayuda", tone: "text-amiko-navy" },
+    { value: String(frustrationReportedCount || 0), label: "Pausas registradas", tone: "text-amiko-coral" },
   ];
 
   const quickActions: Array<{
@@ -216,8 +213,8 @@ export default async function DashboardPage() {
     tone: string;
   }> = [
     {
-      title: "Registrar cómo fue la tarea",
-      description: "Guarda lo que funcionó y lo que costó hoy.",
+      title: `Registrar como fue con ${currentStudent.name}`,
+      description: "Guarda lo que funciono y lo que costo hoy.",
       href: "/mi-dia",
       icon: "journal",
       tone: "bg-amiko-sky text-amiko-blue",
@@ -230,8 +227,8 @@ export default async function DashboardPage() {
       tone: "bg-amiko-cream text-amiko-coral",
     },
     {
-      title: "Revisar la red de apoyo",
-      description: `Mira quiénes pueden acompañar a ${currentStudent.name}.`,
+      title: "Revisar red de apoyo",
+      description: `Mira quienes pueden acompanar a ${currentStudent.name}.`,
       href: "/comunidad",
       icon: "users",
       tone: "bg-amiko-mint text-green-800",
@@ -243,21 +240,65 @@ export default async function DashboardPage() {
       <section className="mb-6">
         <p className="text-3xl font-black leading-tight text-amiko-ink">Hola, {adultName}.</p>
         <p className="mt-2 text-lg font-bold leading-7 text-amiko-muted">
-          ¿Cómo ayudamos hoy a <span className="text-amiko-green">{currentStudent.name}</span>?
+          Como ayudamos hoy a <span className="text-amiko-green">{currentStudent.name}</span>?
         </p>
       </section>
 
-      {(recentHelpCount ?? 0) > 0 && (
+      {students.length > 1 ? (
+        <section className="mb-5 rounded-3xl border border-blue-100 bg-white p-4 shadow-card">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-blue">
+                Perfil activo
+              </p>
+              <h2 className="mt-1 text-lg font-black text-amiko-ink">
+                Elige a quien acompanas ahora
+              </h2>
+            </div>
+            <Link href="/students" className="text-xs font-black text-amiko-blue">
+              Ver perfiles
+            </Link>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {students.map((student) => {
+              const active = student.id === currentStudent.id;
+              return (
+                <Link
+                  key={student.id}
+                  href={`/dashboard?studentId=${student.id}`}
+                  className={`focus-ring flex min-w-[132px] items-center gap-3 rounded-2xl border px-3 py-3 transition ${
+                    active
+                      ? "border-amiko-green bg-amiko-mint text-green-900"
+                      : "border-slate-100 bg-slate-50 text-amiko-muted"
+                  }`}
+                >
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black ${
+                      active ? "bg-amiko-green text-white" : "bg-white text-amiko-blue"
+                    }`}
+                  >
+                    {studentInitial(student.name)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black">{student.name}</span>
+                    <span className="block truncate text-[11px] font-bold">{student.school_grade}</span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {(recentHelpCount ?? 0) > 0 ? (
         <div className="mb-5 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-sm">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
             <AmikoIcon name="help" className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-black text-amber-800">
-              {currentStudent.name} pidió ayuda
-            </p>
+            <p className="text-sm font-black text-amber-800">{currentStudent.name} pidio ayuda</p>
             <p className="text-xs font-bold text-amber-600">
-              Hay una solicitud de ayuda en las últimas 24 horas.
+              Hay una solicitud de ayuda en las ultimas 24 horas.
             </p>
           </div>
           <Link
@@ -267,10 +308,10 @@ export default async function DashboardPage() {
             Ver
           </Link>
         </div>
-      )}
+      ) : null}
 
       <Link
-        href="/adapt-task"
+        href={adaptTaskHref}
         className="focus-ring group relative mb-6 block overflow-hidden rounded-[28px] bg-gradient-to-br from-amiko-blue via-amiko-navy to-[#082A61] p-6 text-white shadow-soft"
       >
         <div className="relative z-10 max-w-[72%]">
@@ -279,7 +320,7 @@ export default async function DashboardPage() {
           </p>
           <h1 className="mt-2 text-2xl font-black leading-tight">Adaptar una tarea</h1>
           <p className="mt-3 text-sm font-bold leading-6 text-blue-100">
-            Escribe la consigna y Amiko la convierte en instrucciones claras para acompañarla.
+            Escribe la consigna de {currentStudent.name} y Amiko la convierte en instrucciones claras.
           </p>
           <span className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-amiko-navy shadow-card transition group-hover:-translate-y-0.5">
             <AmikoIcon name="sparkles" className="h-5 w-5" />
@@ -296,21 +337,15 @@ export default async function DashboardPage() {
         />
       </Link>
 
-      {/* Tareas del estudiante */}
       <section className="mb-7">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-blue">
               Tareas de {currentStudent.name}
             </p>
-            <h2 className="mt-1 text-xl font-black text-amiko-ink">
-              Seguimiento diario
-            </h2>
+            <h2 className="mt-1 text-xl font-black text-amiko-ink">Seguimiento diario</h2>
           </div>
-          <Link
-            href="/historial"
-            className="text-xs font-black text-amiko-blue hover:underline"
-          >
+          <Link href="/historial" className="text-xs font-black text-amiko-blue hover:underline">
             Ver historial
           </Link>
         </div>
@@ -327,11 +362,17 @@ export default async function DashboardPage() {
               <AmikoIcon name="task" className="h-6 w-6" />
             </span>
             <h3 className="mt-3 text-base font-black text-amiko-ink">
-              Sin tareas adaptadas aún
+              {currentStudent.name} aun no tiene tareas adaptadas
             </h3>
             <p className="mt-1 text-xs font-bold leading-5 text-amiko-muted">
-              Usa el botón de arriba para adaptar la primera tarea de {currentStudent.name}.
+              Empieza con una consigna real para crear su primer paso claro.
             </p>
+            <Link
+              href={adaptTaskHref}
+              className="focus-ring mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition hover:brightness-95"
+            >
+              Adaptar tarea para {currentStudent.name}
+            </Link>
           </div>
         )}
       </section>
@@ -342,7 +383,7 @@ export default async function DashboardPage() {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-blue">
               Esta semana
             </p>
-            <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequeños avances que cuentan</h2>
+            <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequenos avances que cuentan</h2>
           </div>
           <Link
             href="/logros"
@@ -364,8 +405,10 @@ export default async function DashboardPage() {
       <section>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-black text-amiko-ink">Para acompañar hoy</h2>
-            <p className="mt-1 text-sm font-bold text-amiko-muted">Elige solo lo que necesitas ahora.</p>
+            <h2 className="text-xl font-black text-amiko-ink">Para acompanar hoy</h2>
+            <p className="mt-1 text-sm font-bold text-amiko-muted">
+              Elige solo lo que necesitas para {currentStudent.name}.
+            </p>
           </div>
           <Link href="/acompanamiento" className="text-xs font-black text-amiko-blue">
             Ver todo
@@ -392,6 +435,12 @@ export default async function DashboardPage() {
           ))}
         </div>
       </section>
+
+      <p className="mt-5 rounded-2xl bg-amiko-sky px-4 py-3 text-xs font-bold leading-5 text-amiko-navy">
+        {students.length === 1
+          ? `Estas viendo el perfil de ${currentStudent.name}. Puedes agregar otro estudiante desde Mi perfil cuando lo necesites.`
+          : `Mostrando informacion de ${currentStudent.name}. Cambia el perfil activo arriba para revisar otro estudiante.`}
+      </p>
     </AppShell>
   );
 }

@@ -100,7 +100,38 @@ export async function createStudent(
   });
 
   if (insertError) {
-    console.error("[createStudent] insert failed:", insertError);
+    console.error("[createStudent] insert failed:", {
+      code: insertError.code,
+      message: insertError.message,
+      details: insertError.details,
+      hint: insertError.hint,
+    });
+
+    // 42703 = column does not exist → la migración 001 aún no se aplicó en Supabase
+    if (insertError.code === "42703") {
+      return {
+        success: false,
+        error:
+          "Hay un problema de configuración en el servidor. Si el error persiste, contacta al soporte.",
+      };
+    }
+
+    // 23514 = check_violation → valor fuera del rango permitido por la constraint
+    if (insertError.code === "23514") {
+      return {
+        success: false,
+        error: "Hay un valor inválido en el formulario. Revisa los datos e intenta de nuevo.",
+      };
+    }
+
+    // 42501 = insufficient_privilege → RLS bloqueó el INSERT
+    if (insertError.code === "42501") {
+      return {
+        success: false,
+        error: "No tienes permiso para realizar esta acción. Cierra sesión, vuelve a entrar e intenta de nuevo.",
+      };
+    }
+
     return { success: false, error: "No pudimos guardar el perfil. Intenta de nuevo." };
   }
 

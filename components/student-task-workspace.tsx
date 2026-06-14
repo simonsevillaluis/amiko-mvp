@@ -3,10 +3,10 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { ArasaacPictogram } from "@/components/arasaac-pictogram";
+import { StudentButton } from "@/components/student-button";
 import { AmikoMark, StudentPortalIcon } from "@/components/student-portal-icons";
 import {
   breakActivities,
-  studentPortalStudent,
   type MathExercise,
   type StudentPortalTask,
 } from "@/lib/student-mock-data";
@@ -248,7 +248,7 @@ function FuentesTab({
       <div className="mb-3 flex items-center gap-2 rounded-2xl bg-amiko-mint/60 px-4 py-2.5">
         <span className="select-none text-sm">👩‍🏫</span>
         <p className="text-xs font-black text-amiko-green">
-          Tu tutor preparó esta tarea para ti
+          Tu adulto preparo esta tarea para ti
         </p>
       </div>
 
@@ -426,14 +426,14 @@ function AmikoTab({
 
         {checked && isCorrect && (
           <div className="mt-4">
-            <button
+            <StudentButton
               type="button"
               onClick={onNext}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-amiko-green py-4 text-lg font-black text-white shadow-card transition active:scale-95"
+              className="w-full py-4 text-lg"
             >
               <AmikoIcon name="check" className="h-5 w-5" />
               {currentIdx + 1 < total ? "Siguiente ejercicio" : "¡Terminé la tarea!"}
-            </button>
+            </StudentButton>
           </div>
         )}
       </div>
@@ -441,13 +441,14 @@ function AmikoTab({
       {/* Actions */}
       {!(checked && isCorrect) && (
         <div className="shrink-0 px-5 pb-4 pt-1">
-          <button
+          <StudentButton
+            variant="secondary"
             type="button"
             onClick={onRevisar}
-            className="flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue text-lg font-black text-white shadow-card transition active:scale-95"
+            className="min-h-14 w-full text-lg"
           >
             Revisar
-          </button>
+          </StudentButton>
         </div>
       )}
     </>
@@ -469,7 +470,7 @@ function RecursosTab({
   taskDone: boolean;
   onNoEntendi: () => void;
 }) {
-  // Keywords: tutor-defined > operator-derived fallback
+  // Keywords: adult-defined > operator-derived fallback
   const opKeyword  = ex.operator === "+" ? "suma" : "resta";
   const keywords   = task.visualKeywords?.length
     ? [opKeyword, ...task.visualKeywords]
@@ -479,14 +480,14 @@ function RecursosTab({
     <div className="flex-1 overflow-y-auto bg-[#F7F9FC] px-5 py-4">
       {!taskDone ? (
         <>
-          {/* ── Nota del tutor ──────────────────────────────────────── */}
+          {/* ── Nota del adulto ──────────────────────────────────────── */}
           {task.tutorNote && (
             <div className="mb-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Woman%20teacher/3D/woman_teacher_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amiko-blue">
-                  Nota de tu tutor
+                  Nota de tu adulto
                 </p>
               </div>
               <p className="text-sm font-bold leading-6 text-amiko-ink">{task.tutorNote}</p>
@@ -511,18 +512,15 @@ function RecursosTab({
             Pistas
           </p>
           <p className="mb-3 text-[10px] font-bold text-amiko-muted">
-            ¿Te trabaste en este paso? Puedes pedir pistas para que te ayuden:
+            Si este paso se siente dificil, pide una pista para verlo con mas calma:
           </p>
 
-          <button
+          <StudentButton
+            variant="amber"
             type="button"
             onClick={onNoEntendi}
             disabled={hintLevel >= 3}
-            className={`mb-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 text-sm font-black transition active:scale-95 ${
-              hintLevel >= 3
-                ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
-            }`}
+            className="mb-4 min-h-12 w-full text-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
@@ -531,7 +529,7 @@ function RecursosTab({
               : hintLevel < 3
                 ? "Necesito otra pista"
                 : "¡Todas las pistas reveladas!"}
-          </button>
+          </StudentButton>
 
           <div className="space-y-2">
             {ex.hints.map((hint, i) => {
@@ -570,7 +568,7 @@ function RecursosTab({
                     <p className="mt-2 text-sm font-bold leading-6 text-amber-900">{hint}</p>
                   ) : (
                     <p className="mt-1 text-xs font-bold text-slate-400">
-                      Pedí una pista en el tab Amiko para desbloquear.
+                      Pide una pista en Amiko para desbloquearla.
                     </p>
                   )}
                 </div>
@@ -610,32 +608,12 @@ function RecursosTab({
           <p className="mb-1 text-xs font-black uppercase tracking-[0.14em] text-amiko-green">
             ¡Tarea completada!
           </p>
-          <p className="mb-5 text-lg font-black text-amiko-ink">¿Qué quieres hacer ahora?</p>
-          <div className="space-y-2 opacity-55">
-            {[
-              { emoji: "❓", label: "Quiz de repaso",       sub: "5 preguntas rápidas",        dur: "~2 min", bg: "bg-purple-50", bd: "border-purple-100" },
-              { emoji: "🗺️", label: "Mapa mental",          sub: "Ideas organizadas",           dur: "~3 min", bg: "bg-blue-50",   bd: "border-blue-100"   },
-              { emoji: "🎙️", label: "Escuchar un resumen",  sub: "Amiko lo cuenta en voz alta", dur: "~1 min", bg: "bg-orange-50", bd: "border-orange-100" },
-              { emoji: "✏️", label: "Dibujar lo aprendido", sub: "Expresa lo que aprendiste",   dur: "libre",  bg: "bg-yellow-50", bd: "border-yellow-100" },
-            ].map((act) => (
-              <div
-                key={act.label}
-                className={`flex items-center gap-4 rounded-2xl border p-4 ${act.bg} ${act.bd}`}
-              >
-                <span className="select-none text-2xl">{act.emoji}</span>
-                <div className="flex-1">
-                  <p className="font-black text-amiko-ink">{act.label}</p>
-                  <p className="text-xs font-bold text-amiko-muted">{act.sub}</p>
-                </div>
-                <span className="shrink-0 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-black text-slate-500">
-                  {act.dur}
-                </span>
-              </div>
-            ))}
+          <p className="mb-5 text-lg font-black text-amiko-ink">Buen trabajo. Esta tarea ya quedo lista.</p>
+          <div className="rounded-3xl border border-amiko-green/20 bg-white p-5 shadow-sm">
+            <p className="text-sm font-black leading-6 text-amiko-ink">
+              Ahora puedes descansar un momento. Si algo fue dificil, tu adulto podra revisarlo contigo.
+            </p>
           </div>
-          <p className="mt-4 text-center text-xs font-bold text-amiko-muted">
-            Actividades disponibles muy pronto.
-          </p>
         </>
       )}
     </div>
@@ -687,13 +665,14 @@ function PauseOverlay({
             );
           })}
         </div>
-        <button
+        <StudentButton
+          variant="secondary"
           type="button"
           onClick={onResume}
-          className="mt-5 min-h-12 w-full rounded-full bg-amiko-navy text-sm font-black text-white"
+          className="mt-5 min-h-12 w-full text-sm"
         >
           Volver a la tarea
-        </button>
+        </StudentButton>
       </div>
     </div>
   );
@@ -719,7 +698,7 @@ function DoneScreen({
   onExit,
 }: {
   task: StudentPortalTask;
-  studentName: string;
+  studentName?: string | null;
   onViewActivities: () => void;
   onExit: () => void;
 }) {
@@ -764,14 +743,16 @@ function DoneScreen({
           className="mt-4 animate-slide-up text-center text-3xl font-black leading-tight text-amiko-ink"
           style={{ animationDelay: "0.35s" }}
         >
-          ¡Felicitaciones,
+          Felicitaciones{studentName ? "," : "!"}
         </h1>
-        <p
-          className="animate-slide-up text-center text-4xl font-black text-amiko-green"
-          style={{ animationDelay: "0.5s" }}
-        >
-          {studentName}!
-        </p>
+        {studentName ? (
+          <p
+            className="animate-slide-up text-center text-4xl font-black text-amiko-green"
+            style={{ animationDelay: "0.5s" }}
+          >
+            {studentName}!
+          </p>
+        ) : null}
         <p
           className="mt-2 animate-slide-up text-center text-base font-bold text-amiko-muted"
           style={{ animationDelay: "0.65s" }}
@@ -834,7 +815,7 @@ function DoneScreen({
           >
             {emotion === "bien"    ? "¡Qué bueno! Lo registramos."    : ""}
             {emotion === "regular" ? "Gracias por contarme. Seguimos." : ""}
-            {emotion === "difícil" ? "Gracias. Tu tutor lo verá."      : ""}
+            {emotion === "difícil" ? "Gracias. Tu adulto lo vera."     : ""}
           </p>
         )}
 
@@ -850,7 +831,7 @@ function DoneScreen({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sparkles/3D/sparkles_3d.png" alt="" className="inline h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
-            {" "}Ver actividades de cierre
+            {" "}Ver cierre tranquilo
           </button>
           <button
             type="button"
@@ -882,11 +863,12 @@ function DoneScreen({
 export function StudentTaskWorkspace({
   task,
   onExit,
-  demoMode = false,
+  studentName,
 }: {
   task: StudentPortalTask;
   onExit: () => void;
   demoMode?: boolean;
+  studentName?: string | null;
 }) {
   const save = useMemo<SaveFn>(
     () => saveProgressEvent,
@@ -1027,7 +1009,7 @@ export function StudentTaskWorkspace({
     return (
       <DoneScreen
         task={task}
-        studentName={studentPortalStudent.name}
+        studentName={studentName}
         onViewActivities={() => {
           setActiveTab("recursos");
           setPhase("workspace");

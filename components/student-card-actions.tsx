@@ -10,7 +10,11 @@ export function StudentCardActions({ studentName }: { studentName: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTutorSound(soundSettings.getTutorEnabled());
+    const handle = window.setTimeout(() => {
+      setTutorSound(soundSettings.getTutorEnabled());
+    }, 0);
+
+    return () => window.clearTimeout(handle);
   }, [open]);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AmikoIcon } from "@/components/amiko-icon";
 
@@ -67,7 +67,19 @@ const TABS: { id: Tab; label: string; icon: "resources" | "chat" | "sparkles" }[
 
 export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>(adaptation ? "apoyos" : "materiales");
+  const requestedReturn = searchParams.get("from");
+  const safeReturnPath = requestedReturn && [
+    "/dashboard",
+    "/historial",
+    "/acompanamiento",
+    "/mi-dia",
+    "/logros",
+    "/students",
+  ].some((path) => requestedReturn === path || requestedReturn.startsWith(`${path}/`))
+    ? requestedReturn
+    : "/dashboard";
 
   const welcomeText = adaptation
     ? `Hola. Tengo lista la adaptación de "${task.title}" para ${studentName}. ¿En qué te puedo ayudar con esta tarea?`
@@ -92,8 +104,12 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
   const [openQuestion, setOpenQuestion] = useState<number | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem(`amiko_task_feedback_${task.id}`);
-    if (stored === "like" || stored === "dislike") setFeedback(stored);
+    const handle = window.setTimeout(() => {
+      const stored = localStorage.getItem(`amiko_task_feedback_${task.id}`);
+      if (stored === "like" || stored === "dislike") setFeedback(stored);
+    }, 0);
+
+    return () => window.clearTimeout(handle);
   }, [task.id]);
 
   const messagesRef = useRef<Message[]>(messages);
@@ -233,7 +249,7 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
         <div className="mx-auto grid max-w-[430px] grid-cols-[40px_1fr_auto] items-center gap-2">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push(safeReturnPath)}
             aria-label="Volver"
             className="focus-ring flex h-10 w-10 items-center justify-center rounded-full text-amiko-navy transition hover:bg-amiko-sky"
           >

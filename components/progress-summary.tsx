@@ -9,7 +9,7 @@ const cardStyles = [
 
 export function ProgressSummary() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4">
       {progressEvents.map((event, index) => (
         <section
           key={event.id}

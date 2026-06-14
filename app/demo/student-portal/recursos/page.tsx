@@ -1,10 +1,10 @@
 "use client";
 
 import { AmikoIcon } from "@/components/amiko-icon";
-import { StudentPortalIcon } from "@/components/student-portal-icons";
 import { breakActivities } from "@/lib/student-mock-data";
 import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
+import { useRouter } from "next/navigation";
 
 const breakActivityEmojis: Record<string, string> = {
   water: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Droplet/3D/droplet_3d.png",
@@ -50,6 +50,8 @@ const tools = [
 ];
 
 export default function DemoRecursosPage() {
+  const router = useRouter();
+
   return (
     <>
       {/* Header */}
@@ -80,6 +82,9 @@ export default function DemoRecursosPage() {
             type="button"
             onClick={() => {
               if (soundSettings.canPlay()) playSound("tap");
+              if (tool.title === "Zona de calma") {
+                router.push("/demo/student-portal/recursos/calma");
+              }
             }}
             className={`focus-ring flex min-h-36 flex-col items-start justify-between rounded-[22px] border-2 ${tool.border} ${tool.bg} p-4 text-left shadow-sm transition active:scale-95`}
           >

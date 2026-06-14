@@ -26,9 +26,9 @@ export function AdaptedTaskResult({ adaptation }: Props) {
   const data = adaptation ?? toAdaptationResult(adaptedTask);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+    <div className="grid gap-5">
       <Card className="bg-white/95">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-green">
               Amiko responde
@@ -48,14 +48,14 @@ export function AdaptedTaskResult({ adaptation }: Props) {
         <div className="mt-6 space-y-3">
           {data.steps.map((step) => (
             <article key={step.number} className="rounded-xl border border-blue-100 bg-white p-4">
-              <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              <div className="flex flex-col gap-4">
                 <div className="flex gap-4 flex-1">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amiko-blue text-xl font-black text-white">
                     {step.number}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-black leading-7 text-amiko-ink">{step.instruction}</h3>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-2">
                       <p className="rounded-lg bg-amiko-mint px-3 py-2 text-sm font-bold text-green-900">
                         Apoyo visual: {step.visual_support}
                       </p>
@@ -65,7 +65,7 @@ export function AdaptedTaskResult({ adaptation }: Props) {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-end sm:justify-start items-center shrink-0 self-center">
+                <div className="flex items-center justify-end self-center">
                   <ArasaacPictogram searchText={step.visual_support} className="h-16 w-16" />
                 </div>
               </div>

@@ -10,25 +10,24 @@ interface Props {
 
 export function FloatingModeToggle({ mode }: Props) {
   const [studentName, setStudentName] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(mode !== "adult");
   const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
-    if (mode !== "adult") {
-      setReady(true);
-      return;
-    }
+    if (mode !== "adult") return;
+
     const supabase = createClient();
-    supabase
-      .from("student_profiles")
-      .select("name")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        setStudentName(data?.name ?? null);
-        setReady(true);
-      });
+    async function load() {
+      const { data } = await supabase
+        .from("student_profiles")
+        .select("name")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      setStudentName(data?.name ?? null);
+      setReady(true);
+    }
+    load().catch(() => setReady(true));
   }, [mode]);
 
   if (!ready) return null;

@@ -7,10 +7,10 @@ import { AmikoIcon } from "@/components/amiko-icon";
 import { StudentPortalIcon, AmikoMark } from "@/components/student-portal-icons";
 import { StudentTaskWorkspace } from "@/components/student-task-workspace";
 import { TaskWorkspaceOwn } from "@/components/task-workspace-own";
+import { StudentButton } from "@/components/student-button";
 import {
   emotionOptions,
   getGreeting,
-  studentPortalStudent,
   studentPortalTasks,
   type StudentPortalTask,
 } from "@/lib/student-mock-data";
@@ -24,7 +24,6 @@ import {
 import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
 import { createClient } from "@/lib/supabase/client";
-import { FloatingModeToggle } from "@/components/floating-mode-toggle";
 
 type RealAdaptedTask = {
   task_id: string;
@@ -157,7 +156,7 @@ function getStatusConfig(status: TaskStatus) {
         badgeBg: "bg-blue-100 text-blue-700",
         dotColor: "bg-blue-500 animate-pulse",
         actionLabel: "Continuar",
-        actionBg: "bg-blue-600 text-white shadow-sm",
+        actionVariant: "secondary" as const,
         actionIcon: "play" as const,
         emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png",
         message: "¡Vas muy bien!",
@@ -168,7 +167,7 @@ function getStatusConfig(status: TaskStatus) {
         badgeBg: "bg-amber-100 text-amber-700",
         dotColor: "bg-amber-500",
         actionLabel: "Revisar",
-        actionBg: "bg-amber-500 text-white shadow-sm",
+        actionVariant: "amber" as const,
         actionIcon: "help" as const,
         emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png",
         message: "Revisemos juntos.",
@@ -179,7 +178,7 @@ function getStatusConfig(status: TaskStatus) {
         badgeBg: "bg-emerald-100 text-emerald-700",
         dotColor: "bg-emerald-500",
         actionLabel: "Repasar",
-        actionBg: "bg-slate-100 text-slate-600",
+        actionVariant: "tertiary" as const,
         actionIcon: "check" as const,
         emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png",
         message: "¡Lo lograste!",
@@ -191,7 +190,7 @@ function getStatusConfig(status: TaskStatus) {
         badgeBg: "bg-slate-100 text-slate-600",
         dotColor: "bg-slate-400",
         actionLabel: "Vamos",
-        actionBg: "bg-amiko-green text-white shadow-sm",
+        actionVariant: "primary" as const,
         actionIcon: "play" as const,
         emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Chequered%20flag/3D/chequered_flag_3d.png",
         message: "¡Empecemos!",
@@ -217,7 +216,7 @@ function TaskCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 ${subjectStyles.bg} bg-white p-4 text-left shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3`}
+      className={`group focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 ${subjectStyles.bg} bg-white p-4 text-left shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3`}
     >
       {/* Icon + subject + status emoji */}
       <div className="flex items-start justify-between gap-2">
@@ -257,10 +256,10 @@ function TaskCard({
           <span className={`h-2 w-2 rounded-full ${config.dotColor}`} />
           {config.label}
         </span>
-        <span className={`inline-flex min-h-9 items-center gap-1 rounded-full px-4 text-xs font-black transition-all duration-200 ${config.actionBg}`}>
+        <StudentButton as="span" variant={config.actionVariant} isGroupChild className="min-h-9 px-4 text-xs">
           {config.actionLabel}
           <AmikoIcon name={config.actionIcon} className="h-3.5 w-3.5" />
-        </span>
+        </StudentButton>
       </div>
     </button>
   );
@@ -346,15 +345,15 @@ function TaskHistoryView({
                       Completada
                     </span>
                   </div>
-                  <button
+                  <StudentButton
                     type="button"
                     onClick={() => onRepeat(task)}
-                    className="focus-ring flex shrink-0 min-h-10 items-center gap-1.5 rounded-full bg-amiko-green px-4 text-xs font-black text-white shadow-sm transition active:scale-95"
+                    className="shrink-0 min-h-10 text-xs px-4"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Counterclockwise%20arrows%20button/3D/counterclockwise_arrows_button_3d.png" alt="" className="h-4 w-4 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
                     Repetir
-                  </button>
+                  </StudentButton>
                 </div>
               );
             })}
@@ -370,7 +369,7 @@ export default function DemoStudentPortalPage() {
   const basePath = pathname.startsWith("/student-portal")
     ? "/student-portal"
     : "/demo/student-portal";
-  const [showCheckin, setShowCheckin] = useState(shouldShowCheckin);
+  const [showCheckin, setShowCheckin] = useState(false);
   const [view, setView] = useState<StudentView>("home");
   const [selectedTask, setSelectedTask] = useState<StudentPortalTask | null>(null);
   const [taskProgressMap, setTaskProgressMap] = useState<
@@ -420,7 +419,16 @@ export default function DemoStudentPortalPage() {
   }, []);
 
   useEffect(() => {
-    // Load local progress events dynamically
+    const handle = window.setTimeout(() => {
+      setShowCheckin(shouldShowCheckin());
+    }, 0);
+
+    return () => window.clearTimeout(handle);
+  }, []);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      // Load local progress events dynamically
     const events = getProgressEvents();
     const map: Record<string, { progress: number; status: TaskStatus }> = {};
 
@@ -455,6 +463,9 @@ export default function DemoStudentPortalPage() {
     });
 
     setTaskProgressMap(map);
+    }, 0);
+
+    return () => window.clearTimeout(handle);
   }, [view]);
 
   const handleRepeatTask = useCallback((task: StudentPortalTask) => {
@@ -489,6 +500,7 @@ export default function DemoStudentPortalPage() {
           setSelectedTask(null);
         }}
         demoMode
+        studentName={realStudentName}
       />
     );
   }
@@ -497,26 +509,25 @@ export default function DemoStudentPortalPage() {
     return <TaskWorkspaceOwn onExit={() => setView("home")} />;
   }
 
-  const displayName = realStudentName ?? studentPortalStudent.name;
+  const displayName = realStudentName;
 
   return (
     <>
-      <FloatingModeToggle mode="student" />
       {showCheckin && <EmotionalCheckin onComplete={handleCloseCheckin} />}
 
       <section className="mb-5">
-        <h1 className="text-2xl font-black text-amiko-ink">
-          {displayName ? `${getGreeting()}, ${displayName}.` : "¡Bienvenido!"}
+        <h1 className="text-2xl font-black text-amiko-green">
+          {displayName ? `${getGreeting()}, ${displayName}.` : "Bienvenido."}
         </h1>
       </section>
 
-      {/* ── Tareas del tutor (reales desde Supabase) ─────────────────────── */}
+      {/* ── Tareas nuevas ──────────────────────────────────────────────── */}
       {realTasks.length > 0 && (
         <section className="mb-7">
           <div className="mb-3 flex items-center gap-2">
             <h2 className="text-lg font-black text-amiko-ink">Tareas nuevas</h2>
             <span className="rounded-full bg-amiko-green/10 px-3 py-1 text-xs font-black text-amiko-green">
-              de tu tutor
+              de tu adulto
             </span>
           </div>
           <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -524,8 +535,8 @@ export default function DemoStudentPortalPage() {
               {realTasks.map((t) => (
                 <Link
                   key={t.task_id}
-                  href={`/paso-a-paso/${t.task_id}`}
-                  className="focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 border-amiko-green/20 bg-white p-4 shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3 hover:border-amiko-green/40"
+                  href={`${basePath}/aventura/${t.task_id}`}
+                  className="group focus-ring w-[260px] shrink-0 snap-start rounded-[22px] border-2 border-amiko-green/20 bg-white p-4 shadow-card transition-all duration-200 active:scale-[0.97] flex flex-col gap-3 hover:border-amiko-green/40"
                 >
                   <div className="flex items-start gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-amiko-mint">
@@ -556,10 +567,10 @@ export default function DemoStudentPortalPage() {
                       <span className="h-2 w-2 rounded-full bg-amiko-blue" />
                       Por empezar
                     </span>
-                    <span className="inline-flex min-h-9 items-center gap-1 rounded-full bg-amiko-green px-4 text-xs font-black text-white">
+                    <StudentButton as="span" variant="primary" isGroupChild className="min-h-9 px-4 text-xs">
                       Vamos
                       <AmikoIcon name="play" className="h-3.5 w-3.5" />
-                    </span>
+                    </StudentButton>
                   </div>
                 </Link>
               ))}
@@ -568,13 +579,32 @@ export default function DemoStudentPortalPage() {
         </section>
       )}
 
-      {/* ── Mis tareas (asignadas por tutor) ─────────────────────────────── */}
+      {/* ── Mis tareas asignadas ───────────────────────────────────────── */}
       <section className="mb-7">
-        <div className="mb-3 flex items-center gap-2">
-          <h2 className="text-lg font-black text-amiko-ink">Mis tareas</h2>
-          <span className="rounded-full bg-amiko-sky px-3 py-1 text-xs font-black text-amiko-blue">
-            de tu tutor
-          </span>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-black text-amiko-ink">Tareas asignadas</h2>
+          <button
+            type="button"
+            onClick={() => setView("history")}
+            className="focus-ring flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-black text-slate-400 hover:bg-slate-100 hover:text-amiko-ink transition"
+            aria-label="Ver historial"
+          >
+            <AmikoIcon name="clock" className="h-4 w-4" />
+            <span>Historial</span>
+            {(() => {
+              const doneCount = studentPortalTasks.filter(
+                (t) => taskProgressMap[t.id]?.status === "terminada"
+              ).length;
+              if (doneCount > 0) {
+                return (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[9px] font-black text-amiko-ink">
+                    {doneCount}
+                  </span>
+                );
+              }
+              return null;
+            })()}
+          </button>
         </div>
         {/* Horizontal snap scroll — hides completed tasks */}
         <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -597,42 +627,22 @@ export default function DemoStudentPortalPage() {
                   />
                 );
               })}
-            {/* Completed tasks peek card */}
-            {(() => {
-              const doneCount = studentPortalTasks.filter(
-                (t) => taskProgressMap[t.id]?.status === "terminada"
-              ).length;
-              return doneCount > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setView("history")}
-                  className="focus-ring w-[160px] shrink-0 snap-start flex flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-emerald-200 bg-emerald-50/40 p-4 text-center transition active:scale-95 hover:border-emerald-300 hover:bg-emerald-50"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png"
-                    alt=""
-                    className="h-12 w-12 object-contain"
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
-                  />
-                  <p className="text-xs font-black text-amiko-ink">{doneCount} terminada{doneCount > 1 ? "s" : ""}</p>
-                  <p className="text-[10px] font-bold text-amiko-green leading-snug">Ver historial →</p>
-                </button>
-              ) : null;
-            })()}
           </div>
         </div>
         {/* "Ver más" link shown when all visible tasks are done */}
         {studentPortalTasks.every((t) => taskProgressMap[t.id]?.status === "terminada") && (
-          <button
-            type="button"
-            onClick={() => setView("history")}
-            className="focus-ring mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 py-3 text-xs font-black text-amiko-green transition hover:bg-emerald-100 active:scale-95"
-          >
+          <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" alt="" className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
-            ¡Completaste todo! Ver historial
-          </button>
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" alt="" className="h-12 w-12 object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }} />
+            <p className="text-sm font-bold text-amiko-muted">¡Completaste todas las tareas!</p>
+            <button
+              type="button"
+              onClick={() => setView("history")}
+              className="focus-ring text-xs font-black text-amiko-blue hover:underline"
+            >
+              Ir al historial
+            </button>
+          </div>
         )}
       </section>
 
@@ -652,17 +662,17 @@ export default function DemoStudentPortalPage() {
           <p className="mb-4 text-sm font-bold leading-5 text-amiko-muted">
             Subí una foto, pegá texto o grabá audio. Amiko te ayuda a entenderlo.
           </p>
-          <button
+          <StudentButton
             type="button"
             onClick={() => {
               if (soundSettings.canPlay()) playSound("tap");
               setView("task-own");
             }}
-            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition active:scale-95"
+            className="min-h-11 text-sm px-5"
           >
             <AmikoIcon name="plus" className="h-4 w-4" />
             Crear un estudio
-          </button>
+          </StudentButton>
         </div>
       </section>
 

@@ -12,7 +12,6 @@ const protectedRoutes = [
   "/student-portal",
   "/comunidad",
   "/dashboard",
-  "/demo/student-portal",
   "/historial",
   "/inicio",
   "/mi-dia",

@@ -60,9 +60,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="app-screen min-h-screen">
+    <div className="min-h-dvh bg-slate-100">
+      <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-gradient-to-b from-white via-[#F5F8FB] to-[#F6FBEF] shadow-soft">
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-[430px] grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3 lg:max-w-5xl lg:grid-cols-[96px_1fr_96px] lg:px-8">
+        <div className="mx-auto grid max-w-[430px] grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3">
           <div className="flex items-center justify-start">
             <Link
               href="/students"
@@ -97,14 +98,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[430px] px-4 py-5 lg:max-w-5xl lg:px-8 lg:py-8">
+      <main className="mx-auto max-w-[430px] px-4 py-5 pb-28">
         {children}
       </main>
 
       <FloatingModeToggle mode="adult" />
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-1 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl">
-        <div className="mx-auto grid max-w-[430px] grid-cols-4 lg:max-w-3xl">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-1 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2">
+        <div className="mx-auto grid max-w-[430px] grid-cols-4">
           {navItems.map((item) => {
             const active = isNavItemActive(pathname, item.href);
             const href = item.href === CHAT_HOME_PATH
@@ -141,6 +142,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </div>
       </nav>
+      </div>
     </div>
   );
 }

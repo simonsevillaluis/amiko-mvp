@@ -7,7 +7,8 @@ import { DetailShell } from "@/components/detail-shell";
 import { EditProfileForm } from "@/components/edit-profile-form";
 import { createClient } from "@/lib/supabase/server";
 import { getOrSyncProfile } from "@/lib/supabase/profile";
-import { getStudentProfiles, studentInitial, supportLevelLabel } from "@/lib/supabase/students";
+import { getStudentProfiles } from "@/lib/supabase/students";
+import { studentInitial, supportLevelLabel } from "@/lib/student-format";
 
 function roleLabel(role: string | null | undefined): string {
   if (role === "parent") return "Padre / Madre";
@@ -35,6 +36,18 @@ export default async function ProfilePage() {
   const displayFullName = profile?.full_name?.trim() || metaFullName?.trim() || "";
   const adultName = displayFullName.split(" ")[0] || "Adulto";
   const adultInitial = adultName.slice(0, 1).toUpperCase();
+  const studentsSummary =
+    students.length === 0
+      ? "Aun no has registrado estudiantes."
+      : students.length === 1
+        ? "1 estudiante registrado."
+        : `${students.length} estudiantes registrados.`;
+  const supportNetworkCopy =
+    students.length === 0
+      ? "Crea primero un perfil para organizar su red de apoyo."
+      : students.length === 1
+        ? `Personas de confianza que acompanan a ${students[0].name}.`
+        : "Personas de confianza que acompanan a tus estudiantes.";
 
   return (
     <DetailShell title="Mi Perfil">
@@ -88,12 +101,15 @@ export default async function ProfilePage() {
       {/* Personas a mi cuidado */}
       <section className="mb-5">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-black text-amiko-ink">Personas a mi cuidado</h2>
+          <div>
+            <h2 className="text-lg font-black text-amiko-ink">Personas a mi cuidado</h2>
+            <p className="mt-0.5 text-xs font-bold text-amiko-muted">{studentsSummary}</p>
+          </div>
           <Link
             href="/register/student"
             className="focus-ring text-xs font-black text-amiko-blue"
           >
-            + Agregar
+            {students.length > 0 ? "Agregar otro estudiante" : "+ Agregar"}
           </Link>
         </div>
 
@@ -113,7 +129,7 @@ export default async function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {students.map((s) => (
+            {students.map((s, index) => (
               <article
                 key={s.id}
                 className="rounded-2xl bg-gradient-to-br from-amiko-mint to-white p-4 shadow-card"
@@ -123,7 +139,12 @@ export default async function ProfilePage() {
                     {studentInitial(s.name)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-black text-amiko-ink">{s.name}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-black text-amiko-ink">{s.name}</p>
+                      <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-black text-amiko-green">
+                        {index === 0 ? "Activo en inicio" : "Disponible"}
+                      </span>
+                    </div>
                     <p className="mt-0.5 text-sm font-bold text-amiko-muted">
                       {s.age} años · {s.school_grade}
                     </p>
@@ -139,6 +160,12 @@ export default async function ProfilePage() {
                     {supportLevelLabel(s.support_level)} · {s.school_grade}
                   </p>
                 )}
+                <Link
+                  href={`/dashboard?studentId=${s.id}`}
+                  className="focus-ring mt-3 flex min-h-10 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-amiko-blue shadow-sm transition hover:bg-amiko-sky"
+                >
+                  Ver en inicio
+                </Link>
               </article>
             ))}
           </div>
@@ -158,7 +185,7 @@ export default async function ProfilePage() {
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-black text-amiko-ink">Red de apoyo</span>
             <span className="mt-0.5 block text-xs font-bold text-amiko-muted">
-              Personas de confianza que acompañan al estudiante
+              {supportNetworkCopy}
             </span>
           </span>
           <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-slate-300" />

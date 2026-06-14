@@ -91,7 +91,7 @@ export default function HistoryPage() {
           title: t.title,
           detail: t.subject ? `Materia: ${t.subject}` : "Tarea adaptada",
           status: formatRelativeDate(t.created_at),
-          href: `/tasks/${t.id}`,
+          href: `/tasks/${t.id}?from=%2Fhistorial`,
           icon: "task",
           tone: "bg-amiko-sky text-amiko-blue",
           type: "Tareas",

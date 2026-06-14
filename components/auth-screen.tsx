@@ -393,10 +393,22 @@ export function LoginScreen() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="focus-ring mt-5 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue px-6 text-lg font-black text-white shadow-card transition hover:bg-amiko-navy disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={loading || !email.trim() || !password.trim()}
+            className={`focus-ring mt-5 flex min-h-14 w-full items-center justify-center rounded-full px-6 text-lg font-black text-white shadow-card transition ${
+              email.trim() && password.trim()
+                ? "bg-amiko-green hover:opacity-90"
+                : "bg-slate-300 cursor-not-allowed"
+            }`}
           >
             {loading ? "Entrando..." : "Entrar"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/demo/student-portal")}
+            className="focus-ring mt-3 flex min-h-14 w-full items-center justify-center rounded-full border-2 border-amiko-green bg-transparent px-6 text-lg font-black text-amiko-green transition hover:bg-amiko-mint/50"
+          >
+            Saltar por ahora
           </button>
         </form>
 

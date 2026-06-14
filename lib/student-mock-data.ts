@@ -78,7 +78,7 @@ export const childStudent: ChildStudent = {
 
 export const childTasks: ChildTask[] = [
   {
-    id: "task-1",
+    id: "task-1-v2",
     title: "Sumas y restas",
     subject: "Matemáticas",
     icon: "math",
@@ -150,7 +150,7 @@ export const childTasks: ChildTask[] = [
     ],
   },
   {
-    id: "task-2",
+    id: "task-2-v2",
     title: "Leer un cuento",
     subject: "Lectura",
     icon: "reading",
@@ -166,7 +166,7 @@ export const childTasks: ChildTask[] = [
     ],
   },
   {
-    id: "task-3",
+    id: "task-3-v2",
     title: "Animales y habitats",
     subject: "Ciencias",
     icon: "science",
@@ -181,7 +181,7 @@ export const childTasks: ChildTask[] = [
     ],
   },
   {
-    id: "task-4",
+    id: "task-4-v2",
     title: "Número que falta",
     subject: "Matemáticas",
     icon: "math",

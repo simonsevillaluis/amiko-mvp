@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { FloatingModeToggle } from "@/components/floating-mode-toggle";
 import { StudentPhoneFrame } from "@/components/student-phone-frame";
 import { StudentAvatar } from "@/components/student-portal-icons";
 import { StudentSettingsPanel } from "@/components/student-settings-panel";
-import { studentPortalStudent } from "@/lib/student-mock-data";
+import { createClient } from "@/lib/supabase/client";
 
 type NavItem = {
   path: string;
@@ -22,12 +23,34 @@ const NAV_ICONS: AmikoIconName[] = ["home", "chat", "resources", "users"];
 export function StudentShell({
   children,
   basePath = "/student-portal",
+  showAdultReturn = true,
 }: {
   children: ReactNode;
   basePath?: string;
+  showAdultReturn?: boolean;
 }) {
   const pathname = usePathname();
   const [showSettings, setShowSettings] = useState(false);
+  const [realStudentName, setRealStudentName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (basePath.startsWith("/demo")) return;
+
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("student_profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      setRealStudentName(data?.name ?? null);
+    });
+  }, [basePath]);
 
   const navItems: NavItem[] = NAV_PATHS.map((path, index) => ({
     path: `${basePath}${path}`,
@@ -37,12 +60,13 @@ export function StudentShell({
 
   return (
     <StudentPhoneFrame>
+      {showAdultReturn ? <FloatingModeToggle mode="student" /> : null}
       {showSettings && <StudentSettingsPanel onClose={() => setShowSettings(false)} />}
 
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
         <div className="grid grid-cols-[80px_1fr_80px] items-center gap-2 px-4 py-3">
           <div className="flex items-center justify-start">
-            <StudentAvatar name={studentPortalStudent.name} className="h-10 w-10 text-base shadow-sm" />
+            <StudentAvatar name={realStudentName ?? "Estudiante"} className="h-10 w-10 text-base shadow-sm" />
           </div>
 
           <div className="flex justify-center">

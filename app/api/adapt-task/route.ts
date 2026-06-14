@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateMockAdaptation, type AdaptationResult } from "@/lib/adapt-task";
-import { getFirstStudent } from "@/lib/supabase/students";
+import { getStudentProfiles } from "@/lib/supabase/students";
 import { saveAdaptedTask } from "@/lib/supabase/tasks";
 
 const ADAPT_SYSTEM_PROMPT = `Eres Amiko, un asistente pedagógico inclusivo para niños con Trastorno del Espectro Autista (TEA).
@@ -106,11 +106,13 @@ function parseAdaptationJson(raw: string): Omit<AdaptationResult, "originalText"
 export async function POST(request: Request) {
   let taskText: string;
   let options: string[];
+  let requestedStudentId: string | null;
 
   try {
     const body = await request.json();
     taskText = typeof body.taskText === "string" ? body.taskText.trim() : "";
     options = Array.isArray(body.options) ? body.options : [];
+    requestedStudentId = typeof body.studentId === "string" ? body.studentId : null;
   } catch {
     return NextResponse.json({ error: "Cuerpo de solicitud inválido." }, { status: 400 });
   }
@@ -237,7 +239,10 @@ export async function POST(request: Request) {
   // Save to Supabase database if authenticated and has a student profile
   let taskId: string | null = null;
   try {
-    const student = await getFirstStudent();
+    const students = await getStudentProfiles();
+    const student = requestedStudentId
+      ? students.find((item) => item.id === requestedStudentId) ?? students[0]
+      : students[0];
     if (student && adaptation) {
       // Generate a preview title
       let title = "Tarea adaptada";

@@ -12,7 +12,8 @@ import {
 } from "@/components/settings-ui";
 import { createClient } from "@/lib/supabase/server";
 import { getOrSyncProfile } from "@/lib/supabase/profile";
-import { getFirstStudent } from "@/lib/supabase/students";
+import { getStudentProfiles } from "@/lib/supabase/students";
+import { studentInitial, supportLevelLabel } from "@/lib/student-format";
 
 const preferenceRows: SettingsRowProps[] = [
   {
@@ -124,13 +125,24 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/login");
 
-  const [profile, firstStudent] = await Promise.all([
+  const [profile, students] = await Promise.all([
     getOrSyncProfile(user.id),
-    getFirstStudent(),
+    getStudentProfiles(),
   ]);
 
-  const adultName = profile?.full_name?.split(" ")[0] ?? "Adulto";
+  const metaFullName =
+    (user.user_metadata?.full_name as string | undefined) ??
+    (user.user_metadata?.name as string | undefined);
+  const displayFullName = profile?.full_name?.trim() || metaFullName?.trim() || "";
+  const adultName = displayFullName.split(" ")[0] || "Adulto";
   const adultInitial = adultName.slice(0, 1).toUpperCase();
+  const firstStudent = students[0] ?? null;
+  const studentSummary =
+    students.length === 0
+      ? "Sin estudiante registrado"
+      : students.length === 1
+        ? `Acompanando a ${firstStudent?.name}`
+        : `${students.length} estudiantes registrados`;
 
   return (
     <DetailShell title="Ajustes" backHref="/dashboard" fallbackHref="/dashboard">
@@ -147,16 +159,51 @@ export default async function SettingsPage() {
             {adultInitial}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-black text-amiko-ink">{profile?.full_name ?? adultName}</span>
+            <span className="block font-black text-amiko-ink">{displayFullName || adultName}</span>
             <span className="mt-0.5 block text-sm font-bold text-amiko-muted">{roleLabel(profile?.role)}</span>
             <span className="mt-1 block text-xs font-black text-amiko-blue">
-              {firstStudent ? `Acompañando a ${firstStudent.name}` : "Crear o revisar perfil del estudiante"}
+              {studentSummary}
             </span>
           </span>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amiko-sky text-amiko-blue">
             <AmikoIcon name="users" className="h-5 w-5" />
           </span>
         </Link>
+
+        {students.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {students.slice(0, 3).map((student) => (
+              <Link
+                key={student.id}
+                href={`/dashboard?studentId=${student.id}`}
+                className="focus-ring flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm transition hover:bg-amiko-sky/50"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amiko-mint text-sm font-black text-green-800">
+                  {studentInitial(student.name)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-black text-amiko-ink">{student.name}</span>
+                  <span className="mt-0.5 block truncate text-xs font-bold text-amiko-muted">
+                    {student.school_grade} · {supportLevelLabel(student.support_level)}
+                  </span>
+                </span>
+                <AmikoIcon name="chevron" className="h-4 w-4 shrink-0 text-slate-300" />
+              </Link>
+            ))}
+            {students.length > 3 ? (
+              <p className="px-2 text-xs font-bold text-amiko-muted">
+                Y {students.length - 3} perfil(es) mas en Mi perfil.
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <Link
+            href="/register/student"
+            className="focus-ring mt-3 flex min-h-11 items-center justify-center rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition hover:brightness-95"
+          >
+            Crear perfil de estudiante
+          </Link>
+        )}
       </SettingsSection>
 
       <SettingsSection label="Preferencias">
@@ -196,7 +243,12 @@ export default async function SettingsPage() {
         AMIKO es apoyo pedagógico. No diagnostica ni reemplaza a docentes, terapeutas o profesionales de salud.
         <br />
         <span className="mt-1 block text-amiko-muted">
-          v0.1.0 MVP Demo{firstStudent ? ` · ${firstStudent.name} activo` : ""}
+          v0.1.0 MVP Demo
+          {students.length === 0
+            ? " · sin estudiante activo"
+            : students.length === 1
+              ? ` · ${firstStudent?.name} activo`
+              : ` · ${students.length} perfiles`}
         </span>
       </p>
     </DetailShell>

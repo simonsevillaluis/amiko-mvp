@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/app-shell";
 import { Card, PageHeader, StatusPill } from "@/components/ui";
-import { adaptedTask } from "@/lib/mock-data";
 import { getFirstStudent } from "@/lib/supabase/students";
 
 export default async function TeacherPage() {
@@ -44,34 +43,12 @@ export default async function TeacherPage() {
         </div>
 
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-green">
-            {adaptedTask.subject}
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amiko-muted">
+            Tarea adaptada
           </p>
-          <h2 className="mt-2 text-2xl font-black text-amiko-ink">{adaptedTask.title}</h2>
-          <div className="mt-5 rounded-xl bg-amiko-cream p-4">
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-muted">
-              Tarea original
-            </p>
-            <p className="mt-2 leading-7 text-amiko-ink">{adaptedTask.originalText}</p>
-          </div>
-          <div className="mt-4 rounded-xl bg-amiko-sky p-4">
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-amiko-navy">
-              Adaptación generada
-            </p>
-            <p className="mt-2 font-bold leading-7 text-amiko-ink">{adaptedTask.simpleSummary}</p>
-          </div>
-          <div className="mt-4 space-y-3">
-            {adaptedTask.steps.map((step) => (
-              <div key={step.number} className="rounded-xl border border-blue-100 p-4">
-                <p className="font-black leading-6 text-amiko-ink">
-                  {step.number}. {step.instruction}
-                </p>
-                <p className="mt-2 text-sm font-bold text-amiko-muted">
-                  Apoyo visual: {step.visualSupport}
-                </p>
-              </div>
-            ))}
-          </div>
+          <p className="mt-4 font-bold leading-7 text-amiko-muted">
+            Cuando el adulto genere una adaptación de tarea, aparecerá aquí junto con los pasos y el apoyo visual.
+          </p>
         </Card>
       </div>
     </AppShell>

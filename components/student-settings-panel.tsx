@@ -10,8 +10,12 @@ export function StudentSettingsPanel({ onClose }: { onClose: () => void }) {
   const [tutorAllows, setTutorAllows] = useState(true);
 
   useEffect(() => {
-    setStudentSound(soundSettings.getStudentEnabled());
-    setTutorAllows(soundSettings.getTutorEnabled());
+    const handle = window.setTimeout(() => {
+      setStudentSound(soundSettings.getStudentEnabled());
+      setTutorAllows(soundSettings.getTutorEnabled());
+    }, 0);
+
+    return () => window.clearTimeout(handle);
   }, []);
 
   function toggleSound() {

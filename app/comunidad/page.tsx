@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { AppShell } from "@/components/app-shell";
-import { getFirstStudent } from "@/lib/supabase/students";
+import { ComingSoonAction } from "@/components/coming-soon-action";
+import { getStudentProfiles } from "@/lib/supabase/students";
 
 const members = [
   { name: "Luis", role: "Cuidador principal", initials: "L", permissions: "5 permisos" },
@@ -10,8 +11,23 @@ const members = [
 ];
 
 export default async function ComunidadPage() {
-  const firstStudent = await getFirstStudent();
-  const studentName = firstStudent?.name ?? "tu estudiante";
+  const students = await getStudentProfiles();
+  const studentName =
+    students.length === 0
+      ? "tu estudiante"
+      : students.length === 1
+        ? students[0].name
+        : "tus estudiantes";
+  const networkTitle =
+    students.length === 0
+      ? "Red de apoyo"
+      : students.length === 1
+        ? `Red de ${students[0].name}`
+        : "Red de tus estudiantes";
+  const networkDescription =
+    students.length === 0
+      ? "Crea un perfil para organizar despues una red privada de apoyo."
+      : "Comparte solo la informacion necesaria con quienes ayudan a acompanar su aprendizaje.";
 
   return (
     <AppShell>
@@ -21,7 +37,7 @@ export default async function ComunidadPage() {
         </p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-amiko-ink">Comunidad</h1>
         <p className="mt-2 text-base font-bold leading-7 text-amiko-muted">
-          Personas de confianza que acompañan a {studentName}.
+          Personas de confianza que acompanan a {studentName}.
         </p>
       </section>
 
@@ -29,9 +45,9 @@ export default async function ComunidadPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-green-100">Red de apoyo</p>
-            <h2 className="mt-2 text-2xl font-black">Red de {studentName}</h2>
+            <h2 className="mt-2 text-2xl font-black">{networkTitle}</h2>
             <p className="mt-2 text-sm font-bold leading-6 text-green-50">
-              Comparte solo la información necesaria con quienes ayudan a acompañar su aprendizaje.
+              {networkDescription}
             </p>
           </div>
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">
@@ -54,8 +70,10 @@ export default async function ComunidadPage() {
         <h2 className="mb-3 text-xl font-black text-amiko-ink">Acciones rápidas</h2>
         {/* 2-col grid always — container is 411px so both cards fit comfortably */}
         <div className="grid grid-cols-2 items-stretch gap-3">
-          <button
-            type="button"
+          <ComingSoonAction
+            title="Invitaciones en desarrollo"
+            description="Más adelante podrás invitar personas y elegir permisos con calma. En este MVP lo dejamos visible solo para validar la estructura."
+            icon="user-plus"
             className="focus-ring flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left shadow-card transition hover:-translate-y-0.5"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amiko-blue text-white">
@@ -63,11 +81,13 @@ export default async function ComunidadPage() {
             </span>
             <span>
               <span className="block font-black text-amiko-ink">Invitar</span>
-              <span className="mt-0.5 block text-xs font-bold leading-4 text-amiko-muted">Elige el acceso con calma.</span>
+                <span className="mt-0.5 block text-xs font-bold leading-4 text-amiko-muted">Elige el acceso con calma.</span>
             </span>
-          </button>
-          <button
-            type="button"
+          </ComingSoonAction>
+          <ComingSoonAction
+            title="Gestión de invitaciones"
+            description="Las invitaciones pendientes se conectarán cuando activemos el flujo real de red privada. Por ahora no enviamos correos ni permisos."
+            icon="mail"
             className="focus-ring relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left shadow-card transition hover:-translate-y-0.5"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amiko-sky text-amiko-blue">
@@ -80,7 +100,7 @@ export default async function ComunidadPage() {
             <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">
               2
             </span>
-          </button>
+          </ComingSoonAction>
         </div>
 
         {/* Profesionales — full-width card, visually distinct as coming-soon */}

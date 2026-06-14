@@ -2,6 +2,7 @@
 
 import { AmikoIcon } from "@/components/amiko-icon";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export type TaskStatus = "draft" | "adapted" | "in_progress" | "completed";
 
@@ -47,6 +48,10 @@ export function TaskCard({
     simple_summary,
     difficulty_level,
   } = task;
+  const pathname = usePathname();
+  const safeFrom = pathname.startsWith("/") ? pathname : "/dashboard";
+  const taskDetailHref = `/tasks/${id}?from=${encodeURIComponent(safeFrom)}`;
+  const studentModeHref = `/student-mode/${id}?from=${encodeURIComponent(safeFrom)}`;
 
   // Renderizar la sección superior común a todos los estados (materia y dificultad si aplica)
   const renderHeader = () => {
@@ -166,7 +171,7 @@ export function TaskCard({
               </button>
             ) : (
               <Link
-                href={`/student-mode/${id}?from=task`}
+                href={studentModeHref}
                 className="focus-ring flex min-h-10 items-center justify-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
               >
                 <AmikoIcon name="play" className="h-4 w-4" />
@@ -236,7 +241,7 @@ export function TaskCard({
               </button>
             ) : (
               <Link
-                href={`/student-mode/${id}?from=task`}
+                href={studentModeHref}
                 className="focus-ring flex min-h-10 items-center justify-center gap-2 rounded-full bg-amiko-blue px-5 text-sm font-black text-white shadow-sm transition hover:bg-amiko-navy active:scale-[0.98]"
               >
                 Continuar tarea
@@ -282,7 +287,7 @@ export function TaskCard({
               </button>
             ) : (
               <Link
-                href={`/tasks/${id}`}
+                href={taskDetailHref}
                 className="focus-ring flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-amiko-ink hover:bg-slate-50 active:scale-[0.98]"
               >
                 Ver resumen

@@ -1,5 +1,5 @@
 import type { StudentProfile } from "@/lib/supabase/students";
-import { studentInitial, supportLevelLabel } from "@/lib/supabase/students";
+import { studentInitial, supportLevelLabel } from "@/lib/student-format";
 import { Card, StatusPill } from "./ui";
 
 export function StudentProfileCard({ student }: { student: StudentProfile }) {

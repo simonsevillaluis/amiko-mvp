@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { createStudent } from "@/app/actions/create-student";
 
@@ -76,7 +76,42 @@ export default function StudentOnboardingPage() {
     .toISOString()
     .split("T")[0];
 
+  // Validación dinámica del formulario
+  const isFormValid = useMemo(() => {
+    const nameRegex = /^[\p{L}\s''.\-]{2,}$/u;
+
+    // Validar campo de nombre
+    if (!studentName.trim() || !nameRegex.test(studentName.trim())) {
+      return false;
+    }
+
+    // Validar fecha de nacimiento y edad
+    if (!birthDate) {
+      return false;
+    }
+    const studentAge = calcAge(birthDate);
+    if (studentAge < 4 || studentAge > 25) {
+      return false;
+    }
+
+    // Validar nivel educativo y grado
+    if (!educationLevel || !gradeYear) {
+      return false;
+    }
+
+    // Validar correo si está completo
+    if (studentEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(studentEmail.trim())) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [studentName, birthDate, educationLevel, gradeYear, studentEmail]);
+
   async function handleSubmit() {
+    // La validación ya está hecha en isFormValid, pero hacemos verificaciones extra por seguridad
     const nameRegex = /^[\p{L}\s''.\-]{2,}$/u;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -165,9 +200,9 @@ export default function StudentOnboardingPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-white px-6 py-10 sm:items-center">
+    <main className="flex min-h-screen items-start justify-center bg-white px-6 py-10 pb-32 sm:items-center sm:pb-10">
       <section className="w-full max-w-[390px]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <Link
             href="/dashboard"
             aria-label="Volver"
@@ -175,16 +210,11 @@ export default function StudentOnboardingPage() {
           >
             <AmikoIcon name="back" className="h-6 w-6" />
           </Link>
-          <button
-            type="button"
-            onClick={() => router.push("/inicio")}
-            className="focus-ring rounded-full bg-amiko-green px-5 py-2 text-sm font-black text-white shadow-sm transition hover:opacity-90"
-          >
-            Saltar por ahora
-          </button>
+          <h2 className="text-xs font-bold text-amiko-muted">Formulario de registro</h2>
+          <div className="w-10" />
         </div>
 
-        <div className="mb-4 mt-5 flex justify-center">
+        <div className="mb-4 flex justify-center">
           <Image
             src="/amiko-character/amiko-icon.svg"
             alt="AMIKO"
@@ -312,16 +342,31 @@ export default function StudentOnboardingPage() {
             {error}
           </p>
         ) : null}
-
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={saving}
-          className="focus-ring mt-5 flex min-h-14 w-full items-center justify-center rounded-full bg-amiko-blue px-6 text-lg font-black text-white shadow-card transition hover:bg-amiko-navy disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {saving ? "Guardando..." : "Crear perfil"}
-        </button>
       </section>
+
+      {/* Barra de acciones fija en móvil, relativa en desktop */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-blue-50 px-6 py-3 sm:relative sm:border-t-0 sm:mt-5 sm:bg-transparent sm:px-0 sm:py-0">
+        <div className="flex w-full max-w-[390px] gap-3 mx-auto">
+          {/* Acción secundaria: Saltar por ahora */}
+          <button
+            type="button"
+            onClick={() => router.push("/inicio")}
+            className="focus-ring flex-1 flex items-center justify-center rounded-full bg-slate-100 px-4 py-3 text-sm font-black text-amiko-ink transition hover:bg-slate-200"
+          >
+            Saltar por ahora
+          </button>
+
+          {/* Acción principal: Crear perfil */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!isFormValid || saving}
+            className="focus-ring flex-1 flex items-center justify-center rounded-full bg-amiko-green px-4 py-3 text-sm font-black text-white shadow-card transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+          >
+            {saving ? "Guardando..." : "Crear perfil"}
+          </button>
+        </div>
+      </div>
     </main>
   );
 }

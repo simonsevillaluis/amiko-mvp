@@ -77,15 +77,16 @@ const SOURCE_OPTIONS: Array<{
   { key: "texto",   label: "Texto copiado", sublabel: "Pega la consigna directamente", icon: "journal", premium: false },
 ];
 
-const PREMIUM_COPY: Record<string, { title: string; subtitle: string; benefits: string[] }> = {
-  pdf:     { title: "Sube PDFs con Premium",     subtitle: "Comparte documentos y Amiko los analiza por ti.",    benefits: ["PDFs y documentos de texto", "Análisis detallado del contenido", "Sin límite de archivos"] },
-  audio:   { title: "Envía audios con Premium",  subtitle: "Graba o sube una nota de voz y Amiko la transcribe.", benefits: ["Grabaciones y notas de voz", "Transcripción automática", "Análisis del contenido"] },
-  imagen:  { title: "Sube fotos con Premium",    subtitle: "Sube la foto de la tarea y Amiko la analiza visualmente.", benefits: ["Fotos y archivos ilimitados", "Análisis visual de tareas", "Sin límite de mensajes"] },
-  web:     { title: "Comparte enlaces con Premium", subtitle: "Pega un enlace y Amiko leerá el contenido por ti.", benefits: ["Lectura de páginas web", "Análisis de contenido externo", "Sin límite de fuentes"] },
-  youtube: { title: "Analiza videos con Premium", subtitle: "Comparte un video de YouTube y Amiko extrae lo importante.", benefits: ["Análisis de videos de YouTube", "Resumen del contenido", "Sin límite de videos"] },
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
+const UPCOMING_SOURCE_COPY: Record<string, { title: string; subtitle: string; benefits: string[] }> = {
+  pdf:     { title: "PDFs en desarrollo",    subtitle: "Pronto podras compartir documentos de forma clara y segura.", benefits: ["Pedir permiso antes de subir", "Mostrar que se guardara", "Mantener el foco pedagogico"] },
+  audio:   { title: "Audio en desarrollo",   subtitle: "La grabacion de notas de voz todavia no esta activa en este MVP.", benefits: ["Control del adulto", "Transcripcion clara", "Privacidad desde el inicio"] },
+  imagen:  { title: "Fotos en desarrollo",   subtitle: "La camara y los archivos se activaran mas adelante.", benefits: ["Permiso explicito", "Uso solo cuando tu eliges", "Sin prometer analisis clinico"] },
+  web:     { title: "Enlaces en desarrollo", subtitle: "Mas adelante AMIKO podra ayudarte a revisar enlaces compartidos.", benefits: ["Fuentes visibles", "Resumen pedagogico", "Sin salir del flujo principal"] },
+  youtube: { title: "Videos en desarrollo",  subtitle: "El analisis de videos todavia no forma parte del MVP.", benefits: ["Resumen claro", "Uso con acompanamiento adulto", "Sin sobrecargar la experiencia"] },
+};
 
 export default function AmikoIAPage() {
   const [selectedMode, setSelectedMode] = useState<ModeKey>("tareas");
@@ -411,7 +412,7 @@ export default function AmikoIAPage() {
               </span>
               {opt.premium && (
                 <span className="shrink-0 rounded-full bg-amiko-cream px-2.5 py-0.5 text-[10px] font-black text-amiko-navy">
-                  Premium
+                  Pronto
                 </span>
               )}
               <AmikoIcon name="chevron" className="h-5 w-5 shrink-0 text-slate-300" />
@@ -422,7 +423,7 @@ export default function AmikoIAPage() {
 
       {/* ── Premium modal ── */}
       {premiumSource && (() => {
-        const copy = PREMIUM_COPY[premiumSource];
+        const copy = UPCOMING_SOURCE_COPY[premiumSource];
         const opt  = SOURCE_OPTIONS.find((s) => s.key === premiumSource)!;
         return (
           <div
@@ -451,10 +452,10 @@ export default function AmikoIAPage() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <Link
-                    href="/settings"
+                    href="/settings/permissions"
                     className="focus-ring flex min-h-11 items-center justify-center rounded-full bg-amiko-green px-4 text-sm font-black text-white shadow-card"
                   >
-                    Ver Premium
+                    Ver permisos
                   </Link>
                   <button
                     type="button"
@@ -465,7 +466,7 @@ export default function AmikoIAPage() {
                   </button>
                 </div>
                 <p className="mt-2 text-center text-xs font-bold text-amiko-muted">
-                  Próximamente disponible
+                  Esta opcion todavia no esta activa en el MVP.
                 </p>
               </div>
             </div>
