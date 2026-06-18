@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AMIKO - Pitch inversionistas</title>
+    <meta
+      name="description"
+      content="Pitch interactivo de AMIKO para inversionistas, aceleradoras y aliados."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="deck-shell">
+      <div class="ambient-grid" aria-hidden="true"></div>
+      <div class="soft-orbit orbit-one" aria-hidden="true"></div>
+      <div class="soft-orbit orbit-two" aria-hidden="true"></div>
+
+      <header class="topbar" aria-label="Controles de presentacion">
+        <a class="brand-mark" href="#slide-1" aria-label="Ir al inicio">
+          <img src="../../amiko-logo/amiko-logo-white.svg" alt="AMIKO" />
+        </a>
+        <div class="phase-indicator">
+          <span id="phaseLabel">Inicio</span>
+          <div class="progress-track" aria-hidden="true">
+            <span id="progressBar"></span>
+          </div>
+        </div>
+        <div class="controls">
+          <button type="button" class="icon-button" id="prevSlide" aria-label="Lamina anterior">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button type="button" class="icon-button" id="nextSlide" aria-label="Lamina siguiente">
+            <span aria-hidden="true">›</span>
+          </button>
+          <button type="button" class="text-button" id="printDeck">PDF</button>
+        </div>
+      </header>
+
+      <main class="slides" aria-live="polite">
+        <section class="slide active cover-slide" id="slide-1" data-phase="Inicio">
+          <div class="slide-content hero-layout">
+            <div class="hero-copy reveal">
+              <p class="eyebrow">Pitch de aceleracion</p>
+              <h1>AMIKO convierte tareas escolares en pasos claros, visuales y acompanados.</h1>
+              <p class="lead">
+                Un asistente pedagogico inclusivo con IA para familias de estudiantes con TEA.
+              </p>
+              <div class="hero-actions">
+                <span>5 minutos</span>
+                <span>5 fases</span>
+                <span>MVP para familias</span>
+              </div>
+            </div>
+            <div class="hero-visual reveal delay-1" aria-label="Personaje de AMIKO">
+              <div class="device-card">
+                <img class="phone-logo" src="../../amiko-logo/amiko-logo.svg" alt="AMIKO" />
+                <div class="task-card">
+                  <span>Tarea original</span>
+                  <strong>Resolver ejercicios de matematicas</strong>
+                </div>
+                <div class="step-card">
+                  <span>Paso 1</span>
+                  <strong>Lee el enunciado con calma.</strong>
+                </div>
+                <div class="step-card small">
+                  <span>Apoyo visual</span>
+                  <strong>Icono de lapiz + numeros</strong>
+                </div>
+              </div>
+              <img
+                class="character float"
+                src="../../amiko-character/amiko-character-main.svg"
+                alt="Personaje de AMIKO"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-2" data-phase="1. Necesidad">
+          <div class="slide-content two-column">
+            <div class="number-ribbon reveal">1</div>
+            <div class="copy-block reveal delay-1">
+              <p class="eyebrow">Que necesidad resolvemos</p>
+              <h2>Una tarea escolar puede convertirse en bloqueo, frustracion y dependencia.</h2>
+              <p>
+                Muchas instrucciones escolares no estan adaptadas: son largas, abstractas y poco
+                visuales. Para familias de estudiantes con TEA, eso puede transformar el aprendizaje
+                en una lucha diaria.
+              </p>
+            </div>
+            <div class="impact-panel reveal delay-2">
+              <div class="mini-stat">
+                <strong>Dolor real</strong>
+                <span>El adulto quiere ayudar, pero no siempre sabe como explicar sin presionar.</span>
+              </div>
+              <div class="mini-stat green">
+                <strong>Necesidad</strong>
+                <span>Traducir la tarea a pasos concretos, visuales y emocionalmente seguros.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide light-slide" id="slide-3" data-phase="2. Equipo">
+          <div class="slide-content team-layout">
+            <div class="section-heading reveal">
+              <p class="eyebrow">Por que somos los mas indicados</p>
+              <h2>AMIKO combina pedagogia, diseno accesible e inteligencia artificial.</h2>
+            </div>
+            <div class="triad reveal delay-1">
+              <article>
+                <span>Pedagogia</span>
+                <h3>Realidad TEA</h3>
+                <p>Validacion desde familias, inclusion y necesidades reales del aula y el hogar.</p>
+              </article>
+              <article>
+                <span>UX/UI</span>
+                <h3>Claridad visual</h3>
+                <p>Interfaces calmadas, escaneables y pensadas para reducir carga cognitiva.</p>
+              </article>
+              <article>
+                <span>IA</span>
+                <h3>Escalabilidad</h3>
+                <p>Lectura, adaptacion y estructuracion de tareas con medicion de progreso.</p>
+              </article>
+            </div>
+            <p class="quiet-note reveal delay-2">
+              La ventaja no es solo tecnica: AMIKO entiende que la experiencia debe sentirse humana,
+              segura y cercana.
+            </p>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-4" data-phase="3. Solucion">
+          <div class="slide-content flow-layout">
+            <div class="section-heading reveal">
+              <p class="eyebrow">Como pretendemos resolverla</p>
+              <h2>No vendemos otro chat con IA. Construimos un flujo pedagogico completo.</h2>
+            </div>
+            <div class="flow-line reveal delay-1">
+              <div><span>01</span><strong>Subir tarea</strong></div>
+              <div><span>02</span><strong>Leerla</strong></div>
+              <div><span>03</span><strong>Adaptarla</strong></div>
+              <div><span>04</span><strong>Guiar pasos</strong></div>
+              <div><span>05</span><strong>Medir progreso</strong></div>
+            </div>
+            <div class="solution-card reveal delay-2">
+              <img src="../../amiko-character/amiko-character-photo.svg" alt="AMIKO con camara" />
+              <div>
+                <h3>El producto es la experiencia, no el prompt.</h3>
+                <p>
+                  AMIKO interpreta la tarea, genera instrucciones simples, sugiere apoyos visuales y
+                  orienta al adulto para acompanar sin sobrecargar.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide light-slide" id="slide-5" data-phase="Modelo">
+          <div class="slide-content model-layout">
+            <div class="section-heading reveal">
+              <p class="eyebrow">Modelo de validacion</p>
+              <h2>Primero validamos valor y costo. Despues escalamos.</h2>
+            </div>
+            <div class="model-grid reveal delay-1">
+              <article>
+                <span>Beta</span>
+                <strong>300 a 500 familias</strong>
+                <p>3 meses para medir uso real, retencion, satisfaccion y disposicion de pago.</p>
+              </article>
+              <article>
+                <span>Plus</span>
+                <strong>Plan familiar unico</strong>
+                <p>Prueba gratis limitada y luego suscripcion. Sin prometer IA ilimitada.</p>
+              </article>
+              <article>
+                <span>IA</span>
+                <strong>Costos separados</strong>
+                <p>Lectura de tarea, adaptacion textual e imagenes se miden por separado.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-6" data-phase="4. Necesitamos">
+          <div class="slide-content ask-layout">
+            <div class="number-ribbon reveal">4</div>
+            <div class="copy-block reveal delay-1">
+              <p class="eyebrow">Que necesitamos para resolverla</p>
+              <h2>Capital, aliados y pilotos para cerrar el MVP y medir traccion real.</h2>
+            </div>
+            <div class="ask-list reveal delay-2">
+              <div><strong>MVP</strong><span>Experiencia completa para padres y cuidadores.</span></div>
+              <div><strong>Beta</strong><span>Familias reales, metricas de uso y aprendizaje.</span></div>
+              <div><strong>IA segura</strong><span>Limites configurables, costos medidos y revision visual.</span></div>
+              <div><strong>Alianzas</strong><span>Escuelas inclusivas, ONGs y comunidades TEA.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide light-slide" id="slide-7" data-phase="5. Beneficio">
+          <div class="slide-content investor-layout">
+            <div class="section-heading reveal">
+              <p class="eyebrow">Que beneficio aportamos al inversor</p>
+              <h2>Una categoria temprana con impacto social y potencial regional.</h2>
+            </div>
+            <div class="investor-stack reveal delay-1">
+              <article>
+                <strong>Necesidad urgente</strong>
+                <p>Familias que necesitan apoyo practico, accesible y cotidiano.</p>
+              </article>
+              <article>
+                <strong>Diferenciacion defendible</strong>
+                <p>Flujo pedagogico, marca, datos de progreso y seguridad visual.</p>
+              </article>
+              <article>
+                <strong>Escala por etapas</strong>
+                <p>Validar primero, medir costos, ajustar precio y crecer con evidencia.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide closing-slide" id="slide-8" data-phase="Cierre">
+          <div class="slide-content closing-layout">
+            <img class="closing-logo reveal" src="../../amiko-logo/amiko-logo-white.svg" alt="AMIKO" />
+            <h2 class="reveal delay-1">
+              De la frustracion a la claridad: una tarea a la vez.
+            </h2>
+            <p class="lead reveal delay-2">
+              AMIKO ayuda a que las familias acompanen mejor y los estudiantes avancen con mas
+              autonomia, calma y confianza.
+            </p>
+            <img
+              class="closing-character float reveal delay-3"
+              src="../../amiko-character/amiko-character-secondary.svg"
+              alt="Personaje de AMIKO saludando"
+            />
+          </div>
+        </section>
+      </main>
+
+      <nav class="slide-dots" aria-label="Navegacion por laminas">
+        <button type="button" class="dot active" data-slide="0" aria-label="Ir a lamina 1"></button>
+        <button type="button" class="dot" data-slide="1" aria-label="Ir a lamina 2"></button>
+        <button type="button" class="dot" data-slide="2" aria-label="Ir a lamina 3"></button>
+        <button type="button" class="dot" data-slide="3" aria-label="Ir a lamina 4"></button>
+        <button type="button" class="dot" data-slide="4" aria-label="Ir a lamina 5"></button>
+        <button type="button" class="dot" data-slide="5" aria-label="Ir a lamina 6"></button>
+        <button type="button" class="dot" data-slide="6" aria-label="Ir a lamina 7"></button>
+        <button type="button" class="dot" data-slide="7" aria-label="Ir a lamina 8"></button>
+      </nav>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
