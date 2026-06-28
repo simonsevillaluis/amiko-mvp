@@ -30,6 +30,10 @@ export default async function ConversationPage() {
     <ConversationClient
       studentName={studentName}
       adultFirstName={adultFirstName}
+      schoolGrade={firstStudent?.school_grade ?? ""}
+      supportLevel={firstStudent?.support_level ?? ""}
+      visualPreferences={firstStudent?.visual_preferences ?? ""}
+      notes={firstStudent?.notes ?? ""}
     />
   );
 }

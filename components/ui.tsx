@@ -69,9 +69,9 @@ export function ButtonLink({
   );
 }
 
-export function StatusPill({ children }: { children: ReactNode }) {
+export function StatusPill({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <span className="inline-flex rounded-full bg-amiko-sky px-3 py-1 text-sm font-black text-amiko-navy">
+    <span className={`inline-flex rounded-full bg-amiko-sky px-3 py-1 text-sm font-black text-amiko-navy ${className}`}>
       {children}
     </span>
   );

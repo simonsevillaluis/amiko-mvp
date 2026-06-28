@@ -40,6 +40,10 @@ export default async function TaskResultPage({
       }}
       adaptation={adaptation}
       studentName={task.student?.name ?? "tu estudiante"}
+      studentSupportLevel={task.student?.support_level}
+      studentVisualPreferences={task.student?.visual_preferences ?? undefined}
+      studentNotes={task.student?.notes ?? undefined}
+      studentSchoolGrade={task.student?.school_grade}
     />
   );
 }

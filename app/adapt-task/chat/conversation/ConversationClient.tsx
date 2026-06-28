@@ -76,9 +76,20 @@ function renderMessageContent(text: string, msgId: string) {
 interface ConversationClientProps {
   studentName: string;
   adultFirstName: string;
+  schoolGrade?: string;
+  supportLevel?: string;
+  visualPreferences?: string;
+  notes?: string;
 }
 
-export default function ConversationClient({ studentName, adultFirstName }: ConversationClientProps) {
+export default function ConversationClient({
+  studentName,
+  adultFirstName,
+  schoolGrade = "",
+  supportLevel = "",
+  visualPreferences = "",
+  notes = "",
+}: ConversationClientProps) {
   const [showContext, setShowContext] = useState(false);
   const [showPremiumImage, setShowPremiumImage] = useState(false);
   const [enabledContext, setEnabledContext] = useState([true, true, false]);
@@ -159,6 +170,9 @@ export default function ConversationClient({ studentName, adultFirstName }: Conv
             .map((m) => ({ role: m.role, text: m.text })),
           studentName,
           mode,
+          ...(enabledContext[0]
+            ? { schoolGrade, supportLevel, visualPreferences, notes }
+            : {}),
         }),
       });
 

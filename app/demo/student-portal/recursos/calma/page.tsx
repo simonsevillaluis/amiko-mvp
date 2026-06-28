@@ -76,20 +76,24 @@ export default function CalmaPage() {
         <p className="mt-2 text-lg font-bold text-amiko-muted">Sigue el círculo para relajarte</p>
       </div>
 
-      <div 
-        onClick={() => !isActive && setIsActive(true)}
-        className={`relative flex h-48 w-48 cursor-pointer items-center justify-center rounded-full border-4 border-sky-50 shadow-soft ${!isActive ? "animate-pulse" : ""}`}
-      >
-        <div className={`absolute h-full w-full rounded-full opacity-60 ${getCircleClasses()}`} />
-        <div className="z-10 text-center px-4">
-          <p className="text-xl font-black text-amiko-navy">{getPhaseText()}</p>
+      {/* Wrapper reserva el espacio del círculo en su escala máxima (2x),
+          ya que `transform: scale()` no empuja el layout del documento. */}
+      <div className="relative flex h-96 w-96 items-center justify-center">
+        <div
+          onClick={() => !isActive && setIsActive(true)}
+          className={`relative flex h-48 w-48 cursor-pointer items-center justify-center rounded-full border-4 border-sky-50 shadow-soft ${!isActive ? "animate-pulse" : ""}`}
+        >
+          <div className={`absolute h-full w-full rounded-full opacity-60 ${getCircleClasses()}`} />
+          <div className="z-10 text-center px-4">
+            <p className="text-xl font-black text-amiko-navy">{getPhaseText()}</p>
+          </div>
         </div>
       </div>
 
       {isActive && (
         <button
           onClick={() => setIsActive(false)}
-          className="mt-16 rounded-full px-6 py-3 font-bold text-slate-400 hover:text-slate-600"
+          className="mt-4 rounded-full px-6 py-3 font-bold text-slate-400 hover:text-slate-600"
         >
           Detener ejercicio
         </button>

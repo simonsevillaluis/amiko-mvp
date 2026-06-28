@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { DetailShell } from "@/components/detail-shell";
+import { saveTaskLog } from "@/app/actions/save-task-log";
 
 // Groups 0 and 1 are single-select (one emotional/difficulty state at a time).
 // Group 2 is multi-select (multiple supports can be used simultaneously).
@@ -27,10 +29,15 @@ const groups = [
   },
 ];
 
-export default function TaskLogPage() {
+function TaskLogForm() {
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get("taskId");
+
   const [selections, setSelections] = useState<string[][]>([[], [], []]);
   const [note, setNote] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   function toggle(groupIndex: number, option: string) {
     setSelections((prev) => {
@@ -52,8 +59,27 @@ export default function TaskLogPage() {
     });
   }
 
-  function handleSave() {
-    setSaved(true);
+  async function handleSave() {
+    setError("");
+    setSaving(true);
+
+    try {
+      const result = await saveTaskLog({
+        taskId,
+        beforeMood: selections[0],
+        supportsUsed: selections[2],
+        note,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -146,18 +172,43 @@ export default function TaskLogPage() {
               onChange={(e) => setNote(e.target.value)}
               className="focus-ring mt-3 min-h-28 w-full resize-none rounded-2xl border border-blue-100 bg-amiko-sky/30 px-4 py-3 text-sm font-bold leading-6 text-amiko-ink outline-none placeholder:text-slate-400"
               placeholder="Un logro, un desafío o algo que funcionó mejor de lo esperado..."
+              disabled={saving}
             />
+
+            {error ? (
+              <p className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                {error}
+              </p>
+            ) : null}
+
             <button
               type="button"
               onClick={handleSave}
-              className="focus-ring mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition hover:brightness-95"
+              disabled={saving}
+              className="focus-ring mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-amiko-green px-5 text-sm font-black text-white shadow-card transition hover:brightness-95 disabled:opacity-60"
             >
               <AmikoIcon name="check" className="h-5 w-5" />
-              Guardar registro
+              {saving ? "Guardando..." : "Guardar registro"}
             </button>
           </section>
         </>
       )}
     </DetailShell>
+  );
+}
+
+export default function TaskLogPage() {
+  return (
+    <Suspense
+      fallback={
+        <DetailShell title="Registro de tarea" fallbackHref="/acompanamiento">
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <p className="text-base font-bold text-amiko-muted">Cargando...</p>
+          </div>
+        </DetailShell>
+      }
+    >
+      <TaskLogForm />
+    </Suspense>
   );
 }

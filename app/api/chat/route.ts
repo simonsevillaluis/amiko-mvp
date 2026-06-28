@@ -260,6 +260,41 @@ function isFastFail(err: unknown): boolean {
   return FAST_FAIL_STATUSES.has((err as { status?: number }).status ?? 0);
 }
 
+const supportLevelLabels: Record<string, string> = {
+  bajo: "apoyo ocasional",
+  medio: "apoyo frecuente",
+  alto: "acompañamiento constante",
+  no_seguro: "nivel de apoyo aún por descubrir",
+};
+
+function truncate(text: string, max: number): string {
+  const clean = text.trim();
+  return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+}
+
+// Builds a short, non-clinical context blurb from the student's real profile
+// so the assistant adapts tone/depth without ever quoting the data verbatim.
+function buildStudentContext(params: {
+  studentName: string;
+  schoolGrade?: string;
+  supportLevel?: string;
+  visualPreferences?: string;
+  notes?: string;
+}): string {
+  const parts: string[] = [];
+
+  if (params.schoolGrade) parts.push(`grado: ${truncate(params.schoolGrade, 60)}`);
+  if (params.supportLevel) {
+    parts.push(`nivel de apoyo: ${supportLevelLabels[params.supportLevel] ?? params.supportLevel}`);
+  }
+  if (params.visualPreferences) parts.push(`le ayuda: ${truncate(params.visualPreferences, 200)}`);
+  if (params.notes) parts.push(`notas del adulto: ${truncate(params.notes, 200)}`);
+
+  if (!parts.length) return "";
+
+  return `\n\nContexto breve de ${params.studentName || "el estudiante"} para ajustar tono y nivel (no lo repitas literalmente, úsalo solo como guía): ${parts.join(" · ")}.`;
+}
+
 function generateMockChatMessage(mode: string, studentName: string): string {
   const name = studentName || "el estudiante";
   if (mode === "calma") return `Para acompañar a ${name} con calma: respirá junto a él/ella por 30 segundos y ofrecé un vaso de agua. Retomen cuando esté más tranquilo/a. 💙`;
@@ -277,6 +312,10 @@ export async function POST(request: Request) {
   let message = "";
   let studentName = "";
   let mode = "tareas";
+  let schoolGrade = "";
+  let supportLevel = "";
+  let visualPreferences = "";
+  let studentNotes = "";
 
   try {
     const body = await request.json();
@@ -284,6 +323,10 @@ export async function POST(request: Request) {
     message = typeof body.message === "string" ? body.message.trim() : "";
     studentName = typeof body.studentName === "string" ? body.studentName : "";
     mode = typeof body.mode === "string" ? body.mode : "tareas";
+    schoolGrade = typeof body.schoolGrade === "string" ? body.schoolGrade : "";
+    supportLevel = typeof body.supportLevel === "string" ? body.supportLevel : "";
+    visualPreferences = typeof body.visualPreferences === "string" ? body.visualPreferences : "";
+    studentNotes = typeof body.notes === "string" ? body.notes : "";
   } catch {
     return NextResponse.json({ error: "Cuerpo de solicitud inválido." }, { status: 400 });
   }
@@ -292,10 +335,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El mensaje es requerido." }, { status: 400 });
   }
 
+  const studentContext = buildStudentContext({
+    studentName,
+    schoolGrade,
+    supportLevel,
+    visualPreferences,
+    notes: studentNotes,
+  });
+
   const systemInstruction =
     mode === "student"
-      ? `${STUDENT_SYSTEM_PROMPT}\n\nEstás hablando directamente con ${studentName || "el estudiante"}.`
-      : `${SYSTEM_PROMPT}\n\nEstás ayudando a acompañar a ${studentName || "el estudiante"}. Modo actual: ${mode || "tareas"}.`;
+      ? `${STUDENT_SYSTEM_PROMPT}\n\nEstás hablando directamente con ${studentName || "el estudiante"}.${studentContext}`
+      : `${SYSTEM_PROMPT}\n\nEstás ayudando a acompañar a ${studentName || "el estudiante"}. Modo actual: ${mode || "tareas"}.${studentContext}`;
 
   let replyText = "";
   let success = false;

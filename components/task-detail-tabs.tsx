@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AmikoIcon } from "@/components/amiko-icon";
+import { markTaskStatus } from "@/app/actions/update-task-status";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,10 @@ interface Props {
   task: TaskForTabs;
   adaptation?: AdaptationForTabs;
   studentName: string;
+  studentSupportLevel?: string;
+  studentVisualPreferences?: string;
+  studentNotes?: string;
+  studentSchoolGrade?: string;
 }
 
 type Message = { id: string; role: "amiko" | "user"; text: string };
@@ -65,7 +70,15 @@ const TABS: { id: Tab; label: string; icon: "resources" | "chat" | "sparkles" }[
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
+export function TaskDetailTabs({
+  task,
+  adaptation,
+  studentName,
+  studentSupportLevel,
+  studentVisualPreferences,
+  studentNotes,
+  studentSchoolGrade,
+}: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>(adaptation ? "apoyos" : "materiales");
@@ -102,6 +115,8 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [revealedHints, setRevealedHints] = useState(0);
   const [openQuestion, setOpenQuestion] = useState<number | null>(null);
+  const [completingTask, setCompletingTask] = useState(false);
+  const [completeError, setCompleteError] = useState("");
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -149,6 +164,10 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
           history,
           studentName,
           mode: "tareas",
+          schoolGrade: studentSchoolGrade,
+          supportLevel: studentSupportLevel,
+          visualPreferences: studentVisualPreferences,
+          notes: studentNotes,
         }),
       });
       const json = (await res.json()) as { text?: string; error?: string };
@@ -156,7 +175,7 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
     } catch {
       return "No pude conectarme ahora. Revisa tu conexión e intenta de nuevo.";
     }
-  }, [task, adaptation, studentName]);
+  }, [task, adaptation, studentName, studentSchoolGrade, studentSupportLevel, studentVisualPreferences, studentNotes]);
 
   const appendAmiko = useCallback((text: string) => {
     setTyping(false);
@@ -226,6 +245,22 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
     if (feedback) localStorage.setItem(`amiko_task_feedback_${task.id}`, feedback);
     setShowFeedbackDialog(null);
     setFeedbackTags([]);
+  }
+
+  async function handleMarkComplete() {
+    if (completingTask) return;
+    setCompletingTask(true);
+    setCompleteError("");
+    try {
+      const result = await markTaskStatus(task.id, "completed");
+      if (!result.success) {
+        setCompleteError(result.error);
+        return;
+      }
+      router.refresh();
+    } finally {
+      setCompletingTask(false);
+    }
   }
 
   const handleSend = useCallback((text: string) => {
@@ -631,6 +666,22 @@ export function TaskDetailTabs({ task, adaptation, studentName }: Props) {
                     <AmikoIcon name="journal" className="h-5 w-5" />
                     Registrar cómo fue
                   </Link>
+                  {task.status !== "completed" && (
+                    <button
+                      type="button"
+                      onClick={handleMarkComplete}
+                      disabled={completingTask}
+                      className="focus-ring flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-4 text-base font-black text-amiko-navy shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      <AmikoIcon name="check" className="h-5 w-5" />
+                      {completingTask ? "Guardando..." : "Marcar como completada"}
+                    </button>
+                  )}
+                  {completeError ? (
+                    <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                      {completeError}
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* ── Feedback ── */}

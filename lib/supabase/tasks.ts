@@ -36,6 +36,9 @@ export interface TaskDetails {
   student?: {
     name: string;
     support_level: SupportLevel;
+    visual_preferences: string | null;
+    notes: string | null;
+    school_grade: string;
   };
   adaptation?: {
     id: string;
@@ -75,10 +78,16 @@ type TaskDetailsRow = {
     | {
     name: string;
     support_level: string;
+    visual_preferences: string | null;
+    notes: string | null;
+    school_grade: string;
   }
     | Array<{
       name: string;
       support_level: string;
+      visual_preferences: string | null;
+      notes: string | null;
+      school_grade: string;
     }>
     | null;
   adapted_tasks?: Array<{
@@ -177,7 +186,10 @@ export async function getTaskDetails(taskId: string): Promise<TaskDetails | null
       updated_at,
       student_profiles (
         name,
-        support_level
+        support_level,
+        visual_preferences,
+        notes,
+        school_grade
       ),
       adapted_tasks (
         id,
@@ -218,6 +230,9 @@ export async function getTaskDetails(taskId: string): Promise<TaskDetails | null
       ? {
           name: student.name,
           support_level: student.support_level as SupportLevel,
+          visual_preferences: student.visual_preferences,
+          notes: student.notes,
+          school_grade: student.school_grade,
         }
       : undefined,
     adaptation: adaptation
