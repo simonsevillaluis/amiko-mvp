@@ -26,6 +26,7 @@ export type AmikoIconName =
   | "image"
   | "camera"
   | "clip"
+  | "paint-bucket"
   | "sparkles"
   | "back"
   | "close";
@@ -186,6 +187,14 @@ export function AmikoIcon({
     clip: (
       <>
         <path d="m21.4 11.6-8.5 8.5a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5l-9.2 9.2a2 2 0 1 1-2.8-2.8l8.5-8.5" />
+      </>
+    ),
+    "paint-bucket": (
+      <>
+        <path d="m3 14 9-9 7 7-6.5 6.5a3.5 3.5 0 0 1-5 0L3 14Z" />
+        <path d="m8 4 8 8" />
+        <path d="M19 16s2 2.1 2 3.5a2 2 0 0 1-4 0c0-1.4 2-3.5 2-3.5Z" />
+        <path d="M3 14h16" />
       </>
     ),
     sparkles: (

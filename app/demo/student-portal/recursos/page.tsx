@@ -4,7 +4,7 @@ import { AmikoIcon } from "@/components/amiko-icon";
 import { breakActivities } from "@/lib/student-mock-data";
 import { playSound } from "@/lib/sounds";
 import { soundSettings } from "@/lib/student-sound-settings";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const breakActivityEmojis: Record<string, string> = {
   water: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Droplet/3D/droplet_3d.png",
@@ -22,6 +22,7 @@ const tools = [
     border: "border-sky-100/60 hover:border-sky-200/80",
     iconBg: "bg-sky-100/80 shadow-sm",
     emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Person%20in%20lotus%20position/Default/3D/person_in_lotus_position_3d_default.png",
+    route: "calma",
   },
   {
     title: "Pasos",
@@ -30,6 +31,7 @@ const tools = [
     border: "border-emerald-100/60 hover:border-emerald-200/80",
     iconBg: "bg-emerald-100/80 shadow-sm",
     emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png",
+    route: null,
   },
   {
     title: "Pedir ayuda",
@@ -38,6 +40,7 @@ const tools = [
     border: "border-orange-100/60 hover:border-orange-200/80",
     iconBg: "bg-orange-100/80 shadow-sm",
     emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Raised%20hand/Default/3D/raised_hand_3d_default.png",
+    route: null,
   },
   {
     title: "Dibujar",
@@ -46,11 +49,16 @@ const tools = [
     border: "border-purple-100/60 hover:border-purple-200/80",
     iconBg: "bg-purple-100/80 shadow-sm",
     emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Artist%20palette/3D/artist_palette_3d.png",
+    route: "dibujar",
   },
 ];
 
 export default function DemoRecursosPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const basePath = pathname.startsWith("/demo")
+    ? "/demo/student-portal"
+    : "/student-portal";
 
   return (
     <>
@@ -82,8 +90,8 @@ export default function DemoRecursosPage() {
             type="button"
             onClick={() => {
               if (soundSettings.canPlay()) playSound("tap");
-              if (tool.title === "Zona de calma") {
-                router.push("/demo/student-portal/recursos/calma");
+              if (tool.route) {
+                router.push(`${basePath}/recursos/${tool.route}`);
               }
             }}
             className={`focus-ring flex min-h-36 flex-col items-start justify-between rounded-[22px] border-2 ${tool.border} ${tool.bg} p-4 text-left shadow-sm transition active:scale-95`}

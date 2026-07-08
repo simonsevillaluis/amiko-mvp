@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { FeedbackFab } from "@/components/feedback-fab";
 import { FloatingModeToggle } from "@/components/floating-mode-toggle";
 import { CHAT_HOME_PATH, withChatFrom } from "@/lib/chat-navigation";
 
@@ -102,6 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
+      <FeedbackFab />
       <FloatingModeToggle mode="adult" />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-1 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2">

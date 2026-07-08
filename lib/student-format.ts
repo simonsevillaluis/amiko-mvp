@@ -6,7 +6,7 @@ export function supportLevelLabel(level: string): string {
   const labels: Record<string, string> = {
     bajo: "Apoyo ocasional",
     medio: "Apoyo frecuente",
-    alto: "Acompanamiento constante",
+    alto: "Acompañamiento constante",
   };
   return labels[level] ?? level;
 }

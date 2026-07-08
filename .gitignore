@@ -11,3 +11,15 @@ yarn-debug.log*
 yarn-error.log*
 
 .vercel
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Outputs, audits y archivos temporales de trabajo
+output/
+outputs/
+scratch/
+tmp/
+
+# Documentos personales / no código
+*.pdf

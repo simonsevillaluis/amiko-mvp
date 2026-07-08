@@ -80,7 +80,7 @@ export default async function DashboardPage({
           <div className="mb-3">
             <h2 className="text-xl font-black text-amiko-ink">Mientras tanto</h2>
             <p className="mt-1 text-sm font-bold text-amiko-muted">
-              Puedes revisar recursos de bienestar para acompanar con calma.
+              Puedes revisar recursos de bienestar para acompañar con calma.
             </p>
           </div>
           <Link
@@ -199,9 +199,9 @@ export default async function DashboardPage({
   }) || [];
 
   const weekSummary = [
-    { value: String(completedTasksCount || 0), label: "Tareas acompanadas", tone: "text-amiko-green" },
+    { value: String(completedTasksCount || 0), label: "Tareas acompañadas", tone: "text-amiko-green" },
     { value: String(stepsCompletedCount || 0), label: "Pasos completados", tone: "text-amiko-blue" },
-    { value: String(helpRequestedCount || 0), label: "Veces pidio ayuda", tone: "text-amiko-navy" },
+    { value: String(helpRequestedCount || 0), label: "Veces pidió ayuda", tone: "text-amiko-navy" },
     { value: String(frustrationReportedCount || 0), label: "Pausas registradas", tone: "text-amiko-coral" },
   ];
 
@@ -228,7 +228,7 @@ export default async function DashboardPage({
     },
     {
       title: "Revisar red de apoyo",
-      description: `Mira quienes pueden acompanar a ${currentStudent.name}.`,
+      description: `Mira quiénes pueden acompañar a ${currentStudent.name}.`,
       href: "/comunidad",
       icon: "users",
       tone: "bg-amiko-mint text-green-800",
@@ -240,7 +240,7 @@ export default async function DashboardPage({
       <section className="mb-6">
         <p className="text-3xl font-black leading-tight text-amiko-ink">Hola, {adultName}.</p>
         <p className="mt-2 text-lg font-bold leading-7 text-amiko-muted">
-          Como ayudamos hoy a <span className="text-amiko-green">{currentStudent.name}</span>?
+          ¿Cómo ayudamos hoy a <span className="text-amiko-green">{currentStudent.name}</span>?
         </p>
       </section>
 
@@ -252,7 +252,7 @@ export default async function DashboardPage({
                 Perfil activo
               </p>
               <h2 className="mt-1 text-lg font-black text-amiko-ink">
-                Elige a quien acompanas ahora
+                Elige a quién acompañas ahora
               </h2>
             </div>
             <Link href="/students" className="text-xs font-black text-amiko-blue">
@@ -296,9 +296,9 @@ export default async function DashboardPage({
             <AmikoIcon name="help" className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-black text-amber-800">{currentStudent.name} pidio ayuda</p>
+            <p className="text-sm font-black text-amber-800">{currentStudent.name} pidió ayuda</p>
             <p className="text-xs font-bold text-amber-600">
-              Hay una solicitud de ayuda en las ultimas 24 horas.
+              Hay una solicitud de ayuda en las últimas 24 horas.
             </p>
           </div>
           <Link
@@ -362,7 +362,7 @@ export default async function DashboardPage({
               <AmikoIcon name="task" className="h-6 w-6" />
             </span>
             <h3 className="mt-3 text-base font-black text-amiko-ink">
-              {currentStudent.name} aun no tiene tareas adaptadas
+              {currentStudent.name} aún no tiene tareas adaptadas
             </h3>
             <p className="mt-1 text-xs font-bold leading-5 text-amiko-muted">
               Empieza con una consigna real para crear su primer paso claro.
@@ -383,7 +383,7 @@ export default async function DashboardPage({
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amiko-blue">
               Esta semana
             </p>
-            <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequenos avances que cuentan</h2>
+            <h2 className="mt-1 text-xl font-black text-amiko-ink">Pequeños avances que cuentan</h2>
           </div>
           <Link
             href="/logros"
@@ -405,7 +405,7 @@ export default async function DashboardPage({
       <section>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-black text-amiko-ink">Para acompanar hoy</h2>
+            <h2 className="text-xl font-black text-amiko-ink">Para acompañar hoy</h2>
             <p className="mt-1 text-sm font-bold text-amiko-muted">
               Elige solo lo que necesitas para {currentStudent.name}.
             </p>
@@ -438,8 +438,8 @@ export default async function DashboardPage({
 
       <p className="mt-5 rounded-2xl bg-amiko-sky px-4 py-3 text-xs font-bold leading-5 text-amiko-navy">
         {students.length === 1
-          ? `Estas viendo el perfil de ${currentStudent.name}. Puedes agregar otro estudiante desde Mi perfil cuando lo necesites.`
-          : `Mostrando informacion de ${currentStudent.name}. Cambia el perfil activo arriba para revisar otro estudiante.`}
+          ? `Estás viendo el perfil de ${currentStudent.name}. Puedes agregar otro estudiante desde Estudiantes cuando lo necesites.`
+          : `Mostrando información de ${currentStudent.name}. Cambia el perfil activo arriba para revisar otro estudiante.`}
       </p>
     </AppShell>
   );

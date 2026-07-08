@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { AmikoIcon, type AmikoIconName } from "@/components/amiko-icon";
+import { FeedbackFab } from "@/components/feedback-fab";
 import { FloatingModeToggle } from "@/components/floating-mode-toggle";
 import { StudentPhoneFrame } from "@/components/student-phone-frame";
 import { StudentAvatar } from "@/components/student-portal-icons";
@@ -110,6 +111,8 @@ export function StudentShell({
       <main className="px-5 py-5 pb-28">
         {children}
       </main>
+
+      <FeedbackFab offsetClassName="bottom-[9.5rem] left-4" />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 px-2 py-1 shadow-[0_-4px_16px_rgba(23,32,46,0.07)] backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[430px] sm:-translate-x-1/2">
         <div className="grid grid-cols-4">

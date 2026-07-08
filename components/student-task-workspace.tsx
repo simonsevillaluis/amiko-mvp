@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { AmikoIcon } from "@/components/amiko-icon";
 import { ArasaacPictogram } from "@/components/arasaac-pictogram";
+import { ParticleBurst } from "@/components/particle-burst";
 import { StudentButton } from "@/components/student-button";
 import { AmikoMark, StudentPortalIcon } from "@/components/student-portal-icons";
 import {
@@ -679,17 +680,8 @@ function PauseOverlay({
 }
 
 // ─── Done screen ──────────────────────────────────────────────────────────────
-// Animated celebration screen. Only this screen uses animate-celebrate-pop,
-// animate-sparkle, and animate-slide-up — all other icons in the app are static.
-
-const CELEBRATION_SPARKLES = [
-  { top: "8%",  left: "6%",   animationDelay: "0s"    },
-  { top: "14%", right: "7%",  animationDelay: "0.45s" },
-  { top: "5%",  left: "44%",  animationDelay: "0.9s"  },
-  { top: "32%", right: "5%",  animationDelay: "0.25s" },
-  { top: "36%", left: "4%",   animationDelay: "1.1s"  },
-  { top: "22%", left: "18%",  animationDelay: "0.65s" },
-];
+// Animated celebration screen. Usamos animaciones breves (pop, slide-up)
+// sin elementos flotantes continuos para evitar sobreestimulación.
 
 function DoneScreen({
   task,
@@ -706,21 +698,11 @@ function DoneScreen({
 
   return (
     <div className={`${SHELL} bg-gradient-to-b from-[#FFF8E8] via-[#ECF6D0] to-[#E8F4FD]`}>
-      {/* 6 floating stars — only animated on task completion */}
-      {CELEBRATION_SPARKLES.map((style, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={i}
-          src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Glowing%20star/3D/glowing_star_3d.png"
-          alt=""
-          className="pointer-events-none absolute h-8 w-8 animate-sparkle object-contain"
-          style={style}
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; }}
-        />
-      ))}
+
 
       {/* Scrollable content */}
       <div className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-10">
+        <ParticleBurst />
 
         {/* AmikoMark — pop animation, ping ring behind */}
         <div className="relative shrink-0">

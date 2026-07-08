@@ -178,7 +178,7 @@ function getStatusConfig(status: TaskStatus) {
         badgeBg: "bg-emerald-100 text-emerald-700",
         dotColor: "bg-emerald-500",
         actionLabel: "Repasar",
-        actionVariant: "tertiary" as const,
+        actionVariant: "success" as const,
         actionIcon: "check" as const,
         emojiUrl: "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png",
         message: "¡Lo lograste!",
