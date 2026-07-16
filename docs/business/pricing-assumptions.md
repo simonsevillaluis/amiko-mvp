@@ -1,6 +1,6 @@
 # AMIKO - Hipótesis de precios y acceso
 
-Última actualización: 2026-06-18.
+Última actualización: 2026-07-15.
 
 Estos supuestos no son precios finales. Deben validarse con usuarios, costos reales de IA y comisiones vigentes de pasarelas.
 
@@ -18,7 +18,7 @@ Estos supuestos no son precios finales. Deben validarse con usuarios, costos rea
 
 - Prueba gratis de 1 mes.
 - Luego un plan Plus único.
-- Precio en evaluación: 5 USD a 6 USD al mes.
+- Precio base en evaluación: 8 USD al mes.
 - Evitar prometer "ilimitado absoluto".
 - Aplicar política de uso justo.
 
@@ -30,7 +30,7 @@ La prueba gratis limitada permite validar valor sin abrir consumo indefinido.
 
 ## Riesgo de margen
 
-Si el plan cuesta 6 USD y la comisión de pasarela o app store fuera cercana a 15%, el ingreso neto aproximado sería 5,10 USD antes de otros costos.
+Si el plan cuesta 8 USD y la comisión de pasarela o app store fuera cercana a 15%, el ingreso neto aproximado sería 6,80 USD antes de otros costos. Si además el costo variable fuera 0,90 USD por familia, la contribución estimada sería 5,90 USD mensuales.
 
 Ese número solo sirve como ejemplo de trabajo. Debe verificarse antes de usarlo en pitch o plan financiero.
 

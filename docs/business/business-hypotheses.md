@@ -1,6 +1,6 @@
 # AMIKO - Hipótesis de negocio
 
-Última actualización: 2026-06-18.
+Última actualización: 2026-07-15.
 
 Este documento resume hipótesis vivas del modelo de negocio de AMIKO. Debe cambiar con entrevistas, beta, costos reales y métricas de uso. No debe convertirse en una regla fija del producto.
 
@@ -22,7 +22,7 @@ AMIKO no debe percibirse como "otro chat con IA". El valor central está en el f
 - La prueba gratis debe ser limitada en tiempo, no un freemium permanente sin control.
 - Durante beta puede ofrecerse acceso gratis por 3 meses para medir valor y costos.
 - En lanzamiento real puede ofrecerse 1 mes gratis y luego un plan Plus único.
-- El precio inicial en evaluación está alrededor de 5 USD a 6 USD mensuales.
+- El precio base en evaluación es 8 USD mensuales.
 - La subida de tareas/fotos debe ser amplia porque es el núcleo del producto.
 - La generación de imágenes nuevas debe tener límites porque puede destruir el margen.
 - Los pictogramas y apoyos visuales son importantes, pero no son el eje completo del producto.
@@ -51,7 +51,7 @@ La dirección actual del producto indica:
 
 ## Preguntas abiertas
 
-1. ¿El usuario pagaría 5 USD o 6 USD al mes por el flujo completo?
+1. ¿El usuario pagaría 8 USD al mes por el flujo completo?
 2. ¿Cuánto cuesta realmente un usuario activo promedio?
 3. ¿Cuántas tareas sube un usuario promedio por semana?
 4. ¿Cuántas imágenes generadas usa realmente una familia?
